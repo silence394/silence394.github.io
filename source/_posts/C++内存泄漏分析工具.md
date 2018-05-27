@@ -3,7 +3,7 @@ title: C++内存泄漏分析工具（VLD）
 categories: C++
 ---
 
-C++的内存管理对于C++程序员来说是一个必须要掌握的技能，稍微不慎就会出现内存泄漏。那么我们可以通过内存泄漏分析工具检测我们的程序，检查出程序是否有内存泄漏以及分析内存泄漏的原因。
+C++的内存管理非常重要，如果没有合理的管理内存的方法，很容易会出现内存泄漏。我们可以通过内存泄漏分析工具检测我们的程序，判断是否有内存泄漏，并分析内存泄漏的原因。
 
 ## VLD
 VLD（Visual Leak Detector）是一款用于C++内存泄漏的检测工具。具有以下的功能：
@@ -62,7 +62,7 @@ struct Block
 	size_t		size;
 };
 
-Block*	gBlockHead = nullptr;
+Block* gBlockHead = nullptr;
 
 void Insert( Block* block )
 {
