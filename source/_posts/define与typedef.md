@@ -18,7 +18,7 @@ float pi2 = PI * 2.0f;
 #define uint unsigned int
 uint a = 1;
 ```
-在预处理的时候提问宏定义，变成了
+在预处理的时候替换宏定义，变成了
 ``` C++
 unsigned int a = 1;
 ```
