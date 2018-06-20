@@ -70,9 +70,9 @@ public:
 	BadString(char* str)
 	{ mStrPtr = str;}
 
-	char& operator[](unsigned int index){ return mStrPtr[index]; }
+	char& operator[](unsigned int index){ return mStrPtr[index]; }	// (1)
 
-	operator char*(){}
+	operator char*(){}						// (2)
 
 private:
 	char* mStrPtr;
@@ -81,5 +81,41 @@ private:
 BadString str("abcccccc");
 str[2] = 'd'; // 在VS2017上产生二义性
 ```
+对于实参2，完美匹配类型是int，匹配类型(1)则需要发生int到unsigned int的隐式类型转换。但是仍然存在一个可选的函数(2)，其具有一个隐式的int类型的参数，str发生自定义类型转换为char*，但参数5与隐式的int类型的参数完美匹配，所以就产生了二义性。
 
-## 函数模板重载解析
+我们可以通过将(1)的参数改为int类型，或者将用户自定义类型转换改为显示类型转换。
+### 2、完美匹配的细化
+对于int类型的参数，有3种参数类型可以与它完美匹配：int, int&，const int&。
+
+如果实参是左值，优先考虑没有const的版本；如果实参是右值，则优先考虑const的版本。成员函数的隐式实参同样符合这种规则。
+``` C++
+void Fun(int&);
+void Fun(const int&);
+int i = 1;
+Fun(i); // 调用Fun(int&)
+Fun(1); // 调用Fun(const int&)
+
+class Test
+{
+public:
+	void Fun1();		// (1)
+	void Fun1() const;	// (2)
+	void Fun2() const;	// (3)
+};
+
+Test test1;
+test1.Fun1(); // (1)
+test1.Fun2(); // (3)
+const Test test2;
+test2.Fun1(); // (2)
+test2.Fun2(); // (3)
+```
+如果再添加一个Fun(int&)的方法，上面Fun()的例子就会出现二义性。
+``` C++
+int i = 1;
+Fun(i); // 二义性，Fun(int&)与Fun(int&)匹配程度一样
+
+Fun(1); // 二义性，Fun(int&)与Fun(const int&)匹配程度一样
+```
+
+## 二、重载的细节
