@@ -120,7 +120,101 @@ Fun(1); // 二义性，Fun(int&)与Fun(const int&)匹配程度一样
 
 ## 二、重载的细节
 ### 1、非模板优先
+对非模版函数和模板产生的实例函数，如果重载解析的各个方面都是相同的，编译器会优先选择非模板函数。如果这种选择是在两个模板之间进行，那么将会选择特化程度更高的模板。
+``` C++
+void Fun(int a);	// (1)
+template<typename T>	// (2)
+void Fun(T t);
+Fun(1);		// 调用(1)
+Fun(1.0f);	// 调用(2)
+```
 ### 2、转型序列
+一个隐式类型转换可以由一系列子类型转换构成，如例：
+``` C++
+class Base
+{
+public:
+	operator short() const {}
+};
+
+class Derived : public Base
+{
+};
+
+void Fun(int)；
+void Process(const Derived& obj)
+{
+	Fun(obj);
+}
+
+Derived a;
+Process( a );
+```
+调用Fun(obj)是正确的，因为可以将obj对象隐式转换为int：
+- obj从const Derived转换为const Base
+- 由const Base类型自定义转换为short类型
+- 由short类型提升为int类型
+
+还有一条重要的规则是：如果转型序列A是B的子序列，会优先使用A所对应的转型，如上例添加
+``` C++
+void Fun(short);
+```
+那么调用Fun(obj)会优先使用这个候选函数，而不会再进行上面的类型提升转换。
 ### 3、指针的转型
+指针和成员指针也会进行各种特定的标准类型转换，包括：
+- 从指针到bool的转换
+- 从任意的指针类型到void*的转换
+- 派生类指针对基类指针的转型
+- 基类成员指针到派生类成员指针的转型
+
+这些转型都是标准类型转换，其等级是不一样的。
+首先，对于其他的标准类型转换都要优于到bool类型的转换。
+``` C++
+void Fun(bool);	// (1)
+void Fun(Base);	// (2)
+Fun(Base()); // 调用 (2)
+```
+对于普通指针的转型，从派生类指针到基类的转换要优于到void*类型的转换。如果可行函数的转换涉及到类继承体系中的多个类，会优先选择派生路径最短的转型。
+``` C++
+class Base
+{
+};
+class Derived1 : public Base
+{
+};
+class Derived2 : public Derived1
+{
+};
+void Fun(Base*); 	// (1)
+void Fun(Derived1*);	// (2)
+
+Derived2 d;
+Fun(&d); // 调用(2)
+```
+对于成员指针，与一般指针正好相反，一个指向基类的成员指针可以隐式的转换成指向子类的相应成员指针，相反则不行：
+``` C++
+class Base
+{
+public:
+	void Fun();
+};
+
+class Derived : public Base
+{
+public:
+	void Fun();
+};
+
+typedef void (Base::*BaseFun)();
+typedef void (Derived::*DerivedFun)();
+
+BaseFun pbfun1 = &Base::Fun;		// OK.
+BaseFun pbfun2 = &Derived::Fun;		// Error.
+
+DerivedFun pdfun1 = &Base::Fun;		// OK.
+DerivedFun pdfun2 = &Derived::Fun;	// OK.
+```
+这是因为子类具有基类的所有成员，一个子类的成员指针可以指向基类的相应成员，相反，子类可能包含了基类中不存在的成员，所以基类的成员指针不能指向子类成员。
+
 ### 4、仿方函数和代理函数
 ### 5、获取函数地址
