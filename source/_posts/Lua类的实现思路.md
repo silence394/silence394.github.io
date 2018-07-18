@@ -35,7 +35,7 @@ Dog dog(std::string("旺财"));
 dog.SetOwnerName(std::string("李狗蛋"));
 dog:PlayBall();
 ```
-
+<!-- more --> 
 ## 一、 元表、元方法介绍
 lua中的变量是没有数据类型的，但是值具有类型：nil、number、boolean、string、function、thread、userdata和table。lua中的每个值都可以有元表（metatable）。元表定义了原始值在特性操作下的行为。可以在元表中设置特性的字段来改变作用域该值操作的某些行为。如对非数字类型做加法操作时，lua会检查该值的元表中的“__add”函数，如果存在，那么则调用其完成加法操作，“__add”函数就是元方法（metamethod）。
 通过元表和元方法能实现C++的面向对象思想。
