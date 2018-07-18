@@ -1,6 +1,6 @@
 ---
 title: Lua类的实现思路
-categories: C+=
+categories: C++
 ---
 
 复习下lua的元表元方法，浅尝辄止。
