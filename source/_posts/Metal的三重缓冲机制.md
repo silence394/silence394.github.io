@@ -28,7 +28,9 @@ CPU更新VertexBuffer，GPU读取VertexBuffer绘制。以此为例来说明，CP
 ![image](https://docs-assets.developer.apple.com/published/a8fcc3ae6f/5cd216dc-7d80-4d95-ac0b-b9fa783513f3.png)
 
 ### 2、三重缓冲
-一般来说CPU
+假设CPU提交命令比GPU处理命令所花费的时间要短一些。假设Buffer的数量无限制，不会发生资源存取冲突的情况，如果按照最简单的CPU和GPU不用等待、并行执行，会导致CPU与GPU之间的执行延时越来越大，即延迟越来越高。
+
+所以需要让CPU等待GPU的执行完毕。假设GPU执行完第n帧，CPU开始执行第n+d帧，那么d帧的时间就是延迟。如果d为0，也就是这种模型，在前面已经阐明其缺点。d为1是这种，会存在一定情况的GPU限制的情况。
 
 ## 二、Metal三重缓冲的实现
 ### 1、信号量机制
@@ -38,3 +40,5 @@ CPU更新VertexBuffer，GPU读取VertexBuffer绘制。以此为例来说明，CP
 1. https://developer.apple.com/documentation/metal/fundamental_lessons/cpu_and_gpu_synchronization
 2. http://gad.qq.com/article/detail/41867
 3. https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/TripleBuffering.html#//apple_ref/doc/uid/TP40016642-CH5-SW1
+
+4. https://gamedev.stackexchange.com/questions/82318/what-problem-does-double-or-triple-buffering-solve-in-modern-games
