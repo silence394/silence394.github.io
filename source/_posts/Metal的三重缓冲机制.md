@@ -27,17 +27,25 @@ CPU更新VertexBuffer，GPU读取VertexBuffer绘制。以此为例来说明，CP
 
 ![image](https://docs-assets.developer.apple.com/published/a8fcc3ae6f/5cd216dc-7d80-4d95-ac0b-b9fa783513f3.png)
 
-### 2、三重缓冲
+### 2、多重缓冲
 假设CPU提交命令比GPU处理命令所花费的时间要短一些。假设Buffer的数量无限制，不会发生资源存取冲突的情况，如果按照最简单的CPU和GPU不用等待、并行执行，会导致CPU与GPU之间的执行延时越来越大，即延迟越来越高。
 
-所以需要让CPU等待GPU的执行完毕。假设GPU执行完第n帧，CPU开始执行第n+d帧，那么d帧的时间就是延迟。如果d为0，也就是这种模型，在前面已经阐明其缺点。d为1是这种，会存在一定情况的GPU限制的情况。
-
 ![image](https://i.loli.net/2018/08/02/5b6314eb98ddc.jpg)
+
+所以为了避免CPU与GPU的延迟越来越大，需要让CPU等待GPU的执行完成。假设有N重缓冲，第一次GPU处理命令需要与CPU处理第N帧同时开始，这样GPU处理完第1帧转向第2帧的时候，CPU可以处理第N+1帧。也就是说CPU与GPU会有N-1帧的延迟。如果N过大，缓冲的内存占用和延迟都是无法接受的。
+
 ![image](https://i.loli.net/2018/08/02/5b6314ebba1ff.jpg)
+
+设想只有双重缓冲的情况。在GPU执行完命令进行swapbuffer的时候，由于FrontBuffer和BackBuffer需要进行数据的拷贝，GPU在这个时候是无法进行绘制的。所以GPU在双重缓冲下并没有满负载的工作。
+
 ![image](https://i.loli.net/2018/08/02/5b6314f003fa9.jpg)
+
+为了最大化的压榨GPU，可以使用三重缓冲，它可以完美的消除GPU的等待时间。
+
 ![image](https://i.loli.net/2018/08/02/5b6314f00ef64.jpg)
 
 ## 二、Metal三重缓冲的实现
+缓冲过多会造成延迟过大、内存占用过高，缓冲过少CPU和GPU会有空闲时间。使用三重缓冲能比较优美的解决这些问题。
 ### 1、信号量机制
 ### 2、实现
 
