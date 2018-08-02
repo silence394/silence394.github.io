@@ -32,6 +32,11 @@ CPU更新VertexBuffer，GPU读取VertexBuffer绘制。以此为例来说明，CP
 
 所以需要让CPU等待GPU的执行完毕。假设GPU执行完第n帧，CPU开始执行第n+d帧，那么d帧的时间就是延迟。如果d为0，也就是这种模型，在前面已经阐明其缺点。d为1是这种，会存在一定情况的GPU限制的情况。
 
+![image](https://i.loli.net/2018/08/02/5b6314eb98ddc.jpg)
+![image](https://i.loli.net/2018/08/02/5b6314ebba1ff.jpg)
+![image](https://i.loli.net/2018/08/02/5b6314f003fa9.jpg)
+![image](https://i.loli.net/2018/08/02/5b6314f00ef64.jpg)
+
 ## 二、Metal三重缓冲的实现
 ### 1、信号量机制
 ### 2、实现
