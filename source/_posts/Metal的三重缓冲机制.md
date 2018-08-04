@@ -33,9 +33,9 @@ CPU更新VertexBuffer，GPU读取VertexBuffer绘制。以此为例来说明，CP
 
 ![image](https://i.loli.net/2018/08/02/5b6314eb98ddc.jpg)
 
-所以为了避免CPU与GPU的延迟越来越大，需要让CPU等待GPU的执行完成。假设有N重缓冲，第一次GPU处理命令需要与CPU处理第N帧同时开始，这样GPU处理完第1帧转向第2帧的时候，CPU可以处理第N+1帧。也就是说CPU与GPU会有N-1帧的延迟。如果N过大，缓冲的内存占用和延迟都是无法接受的。
+所以为了避免CPU与GPU的延迟越来越大，需要让CPU等待GPU的执行完成。假设有N重缓冲，GPU等CPU第一次提交渲染命令后执行命令。当CPU需要处理的帧数与当前GPU处理的帧差N的时候，CPU等待GPU工作完成。此后，CPU的工作都会等待GPU的工作完成才开始执行，CPU和GPU进入了稳定状态。
 
-![image](https://i.loli.net/2018/08/02/5b6314ebba1ff.jpg)
+![image](https://i.loli.net/2018/08/04/5b658a83c410c.jpg)
 
 设想双重缓冲的情况。在GPU执行完命令执行SwapBuffer的时候，由于FrontBuffer和BackBuffer需要进行数据的拷贝，GPU在这个时候是无法进行绘制的。所以GPU在双重缓冲下并没有满负载的工作。
 
@@ -43,7 +43,7 @@ CPU更新VertexBuffer，GPU读取VertexBuffer绘制。以此为例来说明，CP
 
 为了最大化的压榨GPU，可以使用三重缓冲。由于有两个BackBuffer，在SwapBuffer的时候，GPU可以继续像另一个BackBuffer写入像素。它可以完美的消除GPU的等待时间。
 
-![image](https://i.loli.net/2018/08/02/5b6314f00ef64.jpg)
+![image](https://i.loli.net/2018/08/04/5b658a83cdeac.jpg)
 
 ## 二、Metal三重缓冲的实现
 缓冲过多会造成延迟过大、内存占用过高，缓冲过少CPU和GPU会有空闲时间。在Metal上，使用信号量和三重缓冲能比较优美的解决这些问题。
