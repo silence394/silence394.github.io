@@ -22,7 +22,7 @@ categories: 渲染
 而早期图像的存储空间有限，常用的RGBA32格式，其每个通道只有8位，也就是说只能存储256种亮度，所以基于人眼的特性，用更多的空间存储亮部，能够更好的利用图像的存储空间。经过科学家基于人眼特性的测量，用0.45的encoding gamma对输入的亮度进行编码，得到一张图像，显示的时候再经过$\frac{1}{0.45}$的display gamma进行解码，就可以显示原本的亮度值。
 多么棒的巧合！CRT的物理特性和人眼对亮度的敏感曲线都是幂次。后来微软、爱普生、惠普共同提供了一套标准方法来定义色彩，也就是现在设计师常用的sRGB（standard Red Green Blue）。在这个标准下，display gamma值为2.2。
 
-#### 二、为什么需要Gamma校正
+### 二、为什么需要Gamma校正
 游戏的真实渲染是为了尽可能的模拟显示的自然环境的光、雾、阴影、折射、反射等效果，如果我们忽视了Gamma的效应，会导致渲染并不具备物理上的正确性。
 
 设计师做的一张亮度存储为0.5的基于sRGB标准的图像，在经过游戏引擎的光照后，将亮度提升2倍，输出到显示器。如果不考虑Gamma，游戏引擎读取图像后亮度为0.5，经过光照处理后亮度为1.0，再经过显示器的display gamma（2.2）处理，其输出的亮度是1.0。但是这并不符合物理上的规律。由于sRGB标准的图像需要对输入的亮度做encoding gamma($\frac{1}{2.2}$)的处理，所以存储数据为0.5对应的物理亮度应当是0.218（$0.5^{2.2}$）。经过光照处理后为0.436。这才是正确的亮度。
@@ -50,11 +50,34 @@ sRGB空间是一个非线性空间，我们在这里称之为**Gamma空间**，�
 ![](http://ww1.sinaimg.cn/large/c5c3a364ly1fw7yefmyahj208f03l741.jpg)
 在MipMap中会进行到线性插值，所以带mipmap的图片在Gamma空间滤波后，显示的结果要比正确的结果暗。
 
-在更复杂的滤波如模糊，效果如下：
-![](http://ww1.sinaimg.cn/large/c5c3a364ly1fw7yxl830bg20dw09xmym.gif)
-在Gamma空间Blend发生的现象跟上面讲述的是一个道理，不再赘述。
+对一个蓝绿色底色和各个颜色的圆盘的图高斯模糊，对比Gamma空间和线性空间下的模糊的结果。在Gamma空间下红色和黄色的圆盘边界处出现了不正常的黑色、绿色。在线性空间下的结果是符合物理规律的。
+![](http://ww1.sinaimg.cn/large/c5c3a364ly1fw9u69x9lgj20lc0e8ag0.jpg)
+在gamma空间Blend出现的异常现象跟上面讲述的是一个原因，不再赘述。
 
-三、怎么使用Gamma校正
+### 三、怎么使用Gamma校正
+使用Gamma校正有两个关键点：
+- 将读取图像后的空间转换到线性空间
+- 输出到CRT显示器之前，对线性空间运算的颜色encoding gamma
+
+当然，Gamma校正是对非线性空间的图像和CRT显示器进行的。而直接存储物理亮度的浮点纹理（HDR图像）和HDR显示器，是不需要做以上操作的。
+
+#### 空间转换
+sRGB空间是非线性空间，γ为2.2。在shader进行幂次运算是将其转换到线性空间最直接的做法。
+``` hlsl
+float4 color = pow(layer0.Sample(sampler0, uv), 2.2);
+```
+硬API件一般都支持sRGB格式的图像输入，如D3D11的DXGI_FORMAT_R8G8B8A8_UNORM_SRGB，将图像指定为sRGB格式，就不需要在shader做这个转换了。
+
+#### 输出到CRT显示器
+CRT显示器的输入如果是线性空间下的，其本身的display gamma会导致显示器显示的颜色是非线性的。所以需要对线性空间的输入做encoding gamma，将其转换到非线性空间，再经过display gamma可得到线性的显示输出。
+``` hlsl
+Out.color = pow(color, 1 / 2.2);
+return Out;
+```
+同样的，设置RenderTarget或者BackBuffer的格式是sRGB的，就可以省去shader里的运算，由硬件完成。
+
+### 四、总结
+当下的游戏渲染中HDR和PBR是必备的功能，保证光照在线性空间运算，进行gamma校正，是正确渲染的前提。如果没有gamma校正，HDR中的bloom光晕很小，PBR材质的颜色偏暗，细节不明显，美术需要大费周章的去调节其他参数来弥补这个错误。
 
 ### 参考
 1. https://zhuanlan.zhihu.com/p/36581276
@@ -62,5 +85,3 @@ sRGB空间是一个非线性空间，我们在这里称之为**Gamma空间**，�
 3. https://www.zhihu.com/question/27467127
 4. https://blog.csdn.net/candycat1992/article/details/46228771
 5. https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch24.html
-6. http://www.realtimerendering.com/blog/tag/srgb/
-7. http://jennelle-art.tumblr.com/post/155550382688/blend-rgb-colors-using-gamma
