@@ -1,6 +1,7 @@
 ---
 title: Gamma校正
 categories: 渲染
+mathjax: true
 ---
 
 ### 一、Gamma的由来
