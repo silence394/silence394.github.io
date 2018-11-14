@@ -7,7 +7,7 @@ categories: 工具
 
 通过以下步骤可以提升git传输的速率。
 
-1. 通过[站长工具](https://note.youdao.com/)查询github.com和global-ssl.fastly.Net的IP地址。
+1. 通过[查询域名IP](https://www.ip.cn/index.php)查询github.com和global-ssl.fastly.Net的IP地址。
 2. 将查的的IP添加到hosts的末尾。
 ```
 151.101.73.194 github.global.ssl.fastly.net
@@ -15,3 +15,8 @@ categories: 工具
 ```
 3. 执行ipconfig /flushdns，刷新DNS。
 4. 重新启动git。
+
+对于使用s的可以配置git如下:：
+``` sh
+git config --global http.https://github.com.proxy socks5://127.0.0.1:1080
+```

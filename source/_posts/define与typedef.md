@@ -43,7 +43,7 @@ int c = 2 * 1 + 2 * 2;// 6.
 #define add(a, b) (a + b)
 ```
 #### 条件编译
-#define配合#ifdef等条件编译开关避免头文件的重复包含或者代码剔除：
+\#define配合\#ifdef等条件编译开关避免头文件的重复包含或者代码剔除：
 ``` C++
 #ifndef __HEADERXXX__
 #define __HEADERXXX__
