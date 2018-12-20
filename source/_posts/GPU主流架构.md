@@ -23,3 +23,6 @@ PowerVR的GPU上不存在这个问题，因为会先画深度。也叫TBDR.
 7. https://blog.csdn.net/pizi0475/article/details/58627435
 8. https://www.zhihu.com/question/20720436/answer/151341206
 9. https://www.zhihu.com/question/20720436
+10. https://stackoverflow.com/questions/4853856/why-are-draw-calls-expensive
+11. https://docs.microsoft.com/zh-cn/windows/desktop/direct3d9/accurately-profiling-direct3d-api-calls
+12. http://c0de517e.blogspot.com/2008/04/gpu-part-1.html
