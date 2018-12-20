@@ -473,7 +473,7 @@ Derive::$vftable@Base2@:
 	Base1* pbase1 = &derive;
 	Base2* pbase2 = &derive;
 ```
-Base是第一父类，所以pbase指向的是derive对象的地址，编译器不需要做指针的便宜。
+Base是第一父类，所以pbase指向的是derive对象的地址，编译器不需要做指针的偏移。
 Base1是第二个父类，Base1的大小是12个字节，所以pbase1的地址是在基址的基础上加上12字节的便宜，即指向Base2的位置。
 同理pbase2在基指上加上24个字节，指向Base3的位置。
 
