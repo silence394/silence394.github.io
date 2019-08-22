@@ -18,15 +18,15 @@ CPU更新VertexBuffer，GPU读取VertexBuffer绘制。以此为例来说明，CP
 ### 1、CPU与GPU并行
 当CPU和GPU只拥有一份VertexBuffer的时候，CPU和GPU为避免存取冲突，必须要等待VertexBuffer没有引用时才能对其操作。很明显这种方案的效率是及其低下的。
 
-![image](https://docs-assets.developer.apple.com/published/a8fcc3ae6f/3f778646-c337-42d1-977b-f5e8f1ac411c.png)
+![image](https://docs-assets.developer.apple.com/published/d9dc44d823/77a3d759-a808-4e69-81f1-3bb2fa24e545.png)
 
 而为了最大化的利用CPU和GPU的并行性，CPU和GPU需要处于持续工作的状态。理想情况下，GPU在处理第一帧的绘制工作，CPU已经在处理渲染命令的组织了。在此种情况下仍然只有一种VertexBuffer的情况下，CPU Frame2更新VertexBuffer，比GPU Frame1里读取VertexBuffer要早的情况下，会出现错误的绘制结果。
 
-![image](https://docs-assets.developer.apple.com/published/a8fcc3ae6f/e4f8f52c-ec6d-4c8d-bac3-e9e7a8a28be5.png)
+![image](https://docs-assets.developer.apple.com/published/9ffae9d282/4add8abb-f845-4ae6-80c1-818cba38f4e4.png)
 
 为了解决以上的处理器空闲和对Buffer存取的冲突，可以创建多份VertexBuffer供CPU和GPU使用，也就是多重缓冲。CPU和GPU依次处理第1帧的VertexBuffer 1，第2帧的VertexBuffer 2，第3帧的VertexBuffer 3，以此类推。在这种结构下，CPU和GPU可以无等待的存取VertexBuffer，最大化的利用CPU和GPU的并发性。
 
-![image](https://docs-assets.developer.apple.com/published/a8fcc3ae6f/5cd216dc-7d80-4d95-ac0b-b9fa783513f3.png)
+![image](https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/Art/ResourceManagement_TripleBuffering_2x.png)
 
 ### 2、多重缓冲
 假设CPU提交命令消耗的时间是GPU处理命令所花费的时间的3/4，Buffer的数量无限制，不会发生资源存取冲突的情况，如果按照最简单的CPU和GPU不用等待、并行执行，会导致CPU与GPU之间的执行延时越来越大，即延迟越来越高。
@@ -141,5 +141,4 @@ static const NSUInteger kMaxInflightBuffers = 3;
 1. https://developer.apple.com/documentation/metal/fundamental_lessons/cpu_and_gpu_synchronization
 2. http://gad.qq.com/article/detail/41867
 3. https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/TripleBuffering.html#//apple_ref/doc/uid/TP40016642-CH5-SW1
-
 4. https://gamedev.stackexchange.com/questions/82318/what-problem-does-double-or-triple-buffering-solve-in-modern-games
