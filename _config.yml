@@ -3,12 +3,12 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: 路漫漫其修远兮
+title: 知行合一
 subtitle:
-description:
+description: 认识自我、认识世界
 keywords:
 author: silence394
-language: zh-Hans
+language: zh-CN
 timezone:
 
 # URL
@@ -81,3 +81,10 @@ deploy:
   type: git
   repo: git@github.com:silence394/silence394.github.io.git
   branch: master  
+
+symbols_count_time:
+  symbols: true
+  time: true
+  total_symbols: true
+  total_time: true
+  exclude_codeblock: false
