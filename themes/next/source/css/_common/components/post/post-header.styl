@@ -3,7 +3,7 @@
 }
 
 .posts-expand .post-title {
-  font-weight: normal;
+  font-weight: $font-weight-normal;
   margin: initial;
   text-align: center;
   word-wrap();
@@ -31,13 +31,13 @@
 
 .posts-expand .post-title-link {
   border-bottom: none;
-  color: var(--link-color);
+  color: $black-light;
   display: inline-block;
   position: relative;
   vertical-align: top;
 
   &::before {
-    background: var(--link-color);
+    background: black;
     bottom: 0;
     content: '';
     height: 2px;

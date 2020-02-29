@@ -1,11 +1,12 @@
 .followme {
   align-items: center;
-  background: var(--card-bg-color);
+  background: $whitesmoke;
   border-left: 3px solid $red;
   color: $grey;
+  display: flex;
+  flex-direction: column;
   margin: 2em 0 1em 0;
   padding: 1em 1.5em;
-  flex-column();
 
   .social-list {
     align-items: center;
@@ -13,16 +14,16 @@
     flex-wrap: wrap;
 
     .social-item {
-      margin: .5em 2em;
+      margin: 0.5em 2em;
     }
     +tablet-mobile() {
       .social-item {
-        margin: .5em .75em;
+        margin: 0.5em 0.75em;
       }
     }
 
     .social-link {
-      border: 0;
+      border: none;
       display:inline-block;
       text-align: center;
 
