@@ -1,0 +1,546 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.1',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="一、多重缓冲 CPU和GPU是并行工作的，CPU提交命令，GPU处理命令。当二者的任务处理完成，每帧的工作也就完成了。以下面的渲染流程为例，介绍多重缓冲的概念。 CPU更新VertexBuffer，GPU读取VertexBuffer绘制。以此为例来说明，CPU和GPU的工作流程。  每帧开始 CPU更新VertexBuffer CPU提交渲染命令 GPU执行渲染命令 GPU读取VertexBuf">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Metal的三重缓冲机制">
+<meta property="og:url" content="http://yoursite.com/2018/08/01/%E6%80%A7%E8%83%BD/Metal%E7%9A%84%E4%B8%89%E9%87%8D%E7%BC%93%E5%86%B2%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="知行合一">
+<meta property="og:description" content="一、多重缓冲 CPU和GPU是并行工作的，CPU提交命令，GPU处理命令。当二者的任务处理完成，每帧的工作也就完成了。以下面的渲染流程为例，介绍多重缓冲的概念。 CPU更新VertexBuffer，GPU读取VertexBuffer绘制。以此为例来说明，CPU和GPU的工作流程。  每帧开始 CPU更新VertexBuffer CPU提交渲染命令 GPU执行渲染命令 GPU读取VertexBuf">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://docs-assets.developer.apple.com/published/d9dc44d823/77a3d759-a808-4e69-81f1-3bb2fa24e545.png">
+<meta property="og:image" content="https://docs-assets.developer.apple.com/published/9ffae9d282/4add8abb-f845-4ae6-80c1-818cba38f4e4.png">
+<meta property="og:image" content="https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/Art/ResourceManagement_TripleBuffering_2x.png">
+<meta property="og:image" content="https://i.loli.net/2018/08/02/5b6314eb98ddc.jpg">
+<meta property="og:image" content="https://i.loli.net/2018/08/04/5b658a83c410c.jpg">
+<meta property="og:image" content="https://i.loli.net/2018/08/02/5b6314f003fa9.jpg">
+<meta property="og:image" content="https://i.loli.net/2018/08/04/5b658a83cdeac.jpg">
+<meta property="article:published_time" content="2018-07-31T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-03-10T02:22:29.748Z">
+<meta property="article:author" content="silence394">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://docs-assets.developer.apple.com/published/d9dc44d823/77a3d759-a808-4e69-81f1-3bb2fa24e545.png">
+
+<link rel="canonical" href="http://yoursite.com/2018/08/01/%E6%80%A7%E8%83%BD/Metal%E7%9A%84%E4%B8%89%E9%87%8D%E7%BC%93%E5%86%B2%E6%9C%BA%E5%88%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Metal的三重缓冲机制 | 知行合一</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">知行合一</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/01/%E6%80%A7%E8%83%BD/Metal%E7%9A%84%E4%B8%89%E9%87%8D%E7%BC%93%E5%86%B2%E6%9C%BA%E5%88%B6/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Metal的三重缓冲机制
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-08-01 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-01T00:00:00+08:00">2018-08-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:22:29" itemprop="dateModified" datetime="2020-03-10T10:22:29+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%80%A7%E8%83%BD/" itemprop="url" rel="index">
+                    <span itemprop="name">性能</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="一-多重缓冲"><a class="markdownIt-Anchor" href="#一-多重缓冲"></a> 一、多重缓冲</h2>
+<p>CPU和GPU是并行工作的，CPU提交命令，GPU处理命令。当二者的任务处理完成，每帧的工作也就完成了。以下面的渲染流程为例，介绍多重缓冲的概念。</p>
+<p>CPU更新VertexBuffer，GPU读取VertexBuffer绘制。以此为例来说明，CPU和GPU的工作流程。</p>
+<ol>
+<li>每帧开始</li>
+<li>CPU更新VertexBuffer</li>
+<li>CPU提交渲染命令</li>
+<li>GPU执行渲染命令</li>
+<li>GPU读取VertexBuffer</li>
+<li>GPU绘制像素到屏幕</li>
+<li>完成绘制</li>
+</ol>
+<h3 id="1-cpu与gpu并行"><a class="markdownIt-Anchor" href="#1-cpu与gpu并行"></a> 1、CPU与GPU并行</h3>
+<p>当CPU和GPU只拥有一份VertexBuffer的时候，CPU和GPU为避免存取冲突，必须要等待VertexBuffer没有引用时才能对其操作。很明显这种方案的效率是及其低下的。</p>
+<p><img src="https://docs-assets.developer.apple.com/published/d9dc44d823/77a3d759-a808-4e69-81f1-3bb2fa24e545.png" alt="image"></p>
+<p>而为了最大化的利用CPU和GPU的并行性，CPU和GPU需要处于持续工作的状态。理想情况下，GPU在处理第一帧的绘制工作，CPU已经在处理渲染命令的组织了。在此种情况下仍然只有一种VertexBuffer的情况下，CPU Frame2更新VertexBuffer，比GPU Frame1里读取VertexBuffer要早的情况下，会出现错误的绘制结果。</p>
+<p><img src="https://docs-assets.developer.apple.com/published/9ffae9d282/4add8abb-f845-4ae6-80c1-818cba38f4e4.png" alt="image"></p>
+<p>为了解决以上的处理器空闲和对Buffer存取的冲突，可以创建多份VertexBuffer供CPU和GPU使用，也就是多重缓冲。CPU和GPU依次处理第1帧的VertexBuffer 1，第2帧的VertexBuffer 2，第3帧的VertexBuffer 3，以此类推。在这种结构下，CPU和GPU可以无等待的存取VertexBuffer，最大化的利用CPU和GPU的并发性。</p>
+<p><img src="https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/Art/ResourceManagement_TripleBuffering_2x.png" alt="image"></p>
+<h3 id="2-多重缓冲"><a class="markdownIt-Anchor" href="#2-多重缓冲"></a> 2、多重缓冲</h3>
+<p>假设CPU提交命令消耗的时间是GPU处理命令所花费的时间的3/4，Buffer的数量无限制，不会发生资源存取冲突的情况，如果按照最简单的CPU和GPU不用等待、并行执行，会导致CPU与GPU之间的执行延时越来越大，即延迟越来越高。</p>
+<p><img src="https://i.loli.net/2018/08/02/5b6314eb98ddc.jpg" alt="image"></p>
+<p>所以为了避免CPU与GPU的延迟越来越大，需要让CPU等待GPU的执行完成。假设有N重缓冲，GPU等CPU第一次提交渲染命令后执行命令。当CPU需要处理的帧数与当前GPU处理的帧差N的时候，CPU等待GPU工作完成。此后，CPU的工作都会等待GPU的工作完成才开始执行，CPU和GPU进入了稳定状态。</p>
+<p><img src="https://i.loli.net/2018/08/04/5b658a83c410c.jpg" alt="image"></p>
+<p>设想双重缓冲的情况。在GPU执行完命令执行SwapBuffer的时候，由于FrontBuffer和BackBuffer需要进行数据的拷贝，GPU在这个时候是无法进行绘制的。所以GPU在双重缓冲下并没有满负载的工作。</p>
+<p><img src="https://i.loli.net/2018/08/02/5b6314f003fa9.jpg" alt="image"></p>
+<p>为了最大化的压榨GPU，可以使用三重缓冲。由于有两个BackBuffer，在SwapBuffer的时候，GPU可以继续像另一个BackBuffer写入像素。它可以完美的消除GPU的等待时间。</p>
+<p><img src="https://i.loli.net/2018/08/04/5b658a83cdeac.jpg" alt="image"></p>
+<h2 id="二-metal三重缓冲的实现"><a class="markdownIt-Anchor" href="#二-metal三重缓冲的实现"></a> 二、Metal三重缓冲的实现</h2>
+<p>缓冲过多会造成延迟过大、内存占用过高，缓冲过少CPU和GPU会有空闲时间。在Metal上，使用信号量和三重缓冲能比较优美的解决这些问题。</p>
+<h3 id="1-信号量"><a class="markdownIt-Anchor" href="#1-信号量"></a> 1、信号量</h3>
+<p>信号量可以理解为一个特殊的变量，程序对它的操作都是原子性的，可以通过PV操作修改信号量。在IOS上可以通过以下代码控制信号量。</p>
+<figure class="highlight obj-c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dispatch_semaphore_t sem =  dispatch_semaphore_create(<span class="number">3</span>); <span class="comment">// 创建数目为3的信号量</span></span><br><span class="line">dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);	<span class="comment">// 如果信号量为0，则等待；否则信号量-1，继续执行后面的代码</span></span><br><span class="line">dispatch_semaphore_signal(sem);	<span class="comment">// 释放信号量，信号量+1</span></span><br></pre></td></tr></tbody></table></figure>
+<p>通过这三个函数能够实现CPU与GPU之间的同步。</p>
+<h3 id="2-metal的实现"><a class="markdownIt-Anchor" href="#2-metal的实现"></a> 2、Metal的实现</h3>
+<p>帧之间循环操作缓冲，当GPU完成命令后通知CPU执行后续的任务，从而实现CPU与GPU之间的高并发。</p>
+<figure class="highlight obj-c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="built_in">NSUInteger</span> kMaxInflightBuffers = <span class="number">3</span>;</span><br><span class="line"><span class="comment">/* Additional constants */</span></span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Renderer</span></span></span><br><span class="line">{</span><br><span class="line">    dispatch_semaphore_t _frameBoundarySemaphore;</span><br><span class="line">    <span class="built_in">NSUInteger</span> _currentFrameIndex;</span><br><span class="line">    <span class="built_in">NSArray</span> &lt;<span class="keyword">id</span> &lt;<span class="built_in">MTLBuffer</span>&gt;&gt; _dynamicDataBuffers;</span><br><span class="line">    <span class="comment">/* Additional variables */</span></span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line">- (<span class="keyword">void</span>)configureMetal</span><br><span class="line">{</span><br><span class="line">    <span class="comment">// Create a semaphore that gets signaled at each frame boundary.</span></span><br><span class="line">    <span class="comment">// The GPU signals the semaphore once it completes a frame's work, allowing the CPU to work on a new frame</span></span><br><span class="line">    _frameBoundarySemaphore = dispatch_semaphore_create(kMaxInflightBuffers);</span><br><span class="line">    _currentFrameIndex = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">/* Additional configuration */</span></span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line">- (<span class="keyword">void</span>)makeResources</span><br><span class="line">{</span><br><span class="line">    <span class="comment">// Create a FIFO queue of three dynamic data buffers</span></span><br><span class="line">    <span class="comment">// This ensures that the CPU and GPU are never accessing the same buffer simultaneously</span></span><br><span class="line">    <span class="built_in">MTLResourceOptions</span> bufferOptions = <span class="comment">/* ... */</span>;</span><br><span class="line">    <span class="built_in">NSMutableArray</span> *mutableDynamicDataBuffers = [<span class="built_in">NSMutableArray</span> arrayWithCapacity:kMaxInflightBuffers];</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; kMaxInflightBuffers; i++)</span><br><span class="line">    {</span><br><span class="line">        <span class="comment">// Create a new buffer with enough capacity to store one instance of the dynamic buffer data</span></span><br><span class="line">        <span class="keyword">id</span> &lt;<span class="built_in">MTLBuffer</span>&gt; dynamicDataBuffer = [_device newBufferWithLength:<span class="keyword">sizeof</span>(DynamicBufferData) options:bufferOptions];</span><br><span class="line">        [mutableDynamicDataBuffers addObject:dynamicDataBuffer];</span><br><span class="line">    }</span><br><span class="line">    _dynamicDataBuffers = [mutableDynamicDataBuffers <span class="keyword">copy</span>];</span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line">- (<span class="keyword">void</span>)update</span><br><span class="line">{</span><br><span class="line">    <span class="comment">// Advance the current frame index, which determines the correct dynamic data buffer for the frame</span></span><br><span class="line">    _currentFrameIndex = (_currentFrameIndex + <span class="number">1</span>) % kMaxInflightBuffers;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Update the contents of the dynamic data buffer</span></span><br><span class="line">    DynamicBufferData *dynamicBufferData = [_dynamicDataBuffers[_currentFrameIndex] contents];</span><br><span class="line">    <span class="comment">/* Perform updates */</span></span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line">- (<span class="keyword">void</span>)render</span><br><span class="line">{</span><br><span class="line">    <span class="comment">// Wait until the inflight command buffer has completed its work</span></span><br><span class="line">    dispatch_semaphore_wait(_frameBoundarySemaphore, DISPATCH_TIME_FOREVER);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Update the per-frame dynamic buffer data</span></span><br><span class="line">    [<span class="keyword">self</span> update];</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Create a command buffer and render command encoder</span></span><br><span class="line">    <span class="keyword">id</span> &lt;<span class="built_in">MTLCommandBuffer</span>&gt; commandBuffer = [_commandQueue commandBuffer];</span><br><span class="line">    <span class="keyword">id</span> &lt;<span class="built_in">MTLRenderCommandEncoder</span>&gt; renderCommandEncoder = [commandBuffer renderCommandEncoderWithDescriptor:_renderPassDescriptor];</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Set the dynamic data buffer for the frame</span></span><br><span class="line">    [renderCommandEncoder setVertexBuffer:_dynamicDataBuffers[_currentFrameIndex] offset:<span class="number">0</span> atIndex:<span class="number">0</span>];</span><br><span class="line">    <span class="comment">/* Additional encoding */</span></span><br><span class="line">    [renderCommandEncoder endEncoding];</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Schedule a drawable presentation to occur after the GPU completes its work</span></span><br><span class="line">    [commandBuffer presentDrawable:view.currentDrawable];</span><br><span class="line"> </span><br><span class="line">    __<span class="keyword">weak</span> dispatch_semaphore_t semaphore = _frameBoundarySemaphore;</span><br><span class="line">    [commandBuffer addCompletedHandler:^(<span class="keyword">id</span>&lt;<span class="built_in">MTLCommandBuffer</span>&gt; commandBuffer) {</span><br><span class="line">        <span class="comment">// GPU work is complete</span></span><br><span class="line">        <span class="comment">// Signal the semaphore to start the CPU work</span></span><br><span class="line">        dispatch_semaphore_signal(semaphore);</span><br><span class="line">    }];</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// CPU work is complete</span></span><br><span class="line">    <span class="comment">// Commit the command buffer and start the GPU work</span></span><br><span class="line">    [commandBuffer commit];</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>引用：</p>
+<ol>
+<li><a href="https://developer.apple.com/documentation/metal/fundamental_lessons/cpu_and_gpu_synchronization" target="_blank" rel="noopener">https://developer.apple.com/documentation/metal/fundamental_lessons/cpu_and_gpu_synchronization</a></li>
+<li><a href="http://gad.qq.com/article/detail/41867" target="_blank" rel="noopener">http://gad.qq.com/article/detail/41867</a></li>
+<li><a href="https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/TripleBuffering.html#//apple_ref/doc/uid/TP40016642-CH5-SW1" target="_blank" rel="noopener">https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/TripleBuffering.html#//apple_ref/doc/uid/TP40016642-CH5-SW1</a></li>
+<li><a href="https://gamedev.stackexchange.com/questions/82318/what-problem-does-double-or-triple-buffering-solve-in-modern-games" target="_blank" rel="noopener">https://gamedev.stackexchange.com/questions/82318/what-problem-does-double-or-triple-buffering-solve-in-modern-games</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/07/27/%E5%B7%A5%E5%85%B7/git%E4%BC%A0%E8%BE%93%E9%80%9F%E5%BA%A6%E6%85%A2%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" rel="prev" title="git传输速度慢的解决方案">
+      <i class="fa fa-chevron-left"></i> git传输速度慢的解决方案
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/09/13/%E6%B8%B2%E6%9F%93/%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF%E7%9A%84%E5%9F%BA%E7%A1%80%E6%95%B0%E5%AD%A6/" rel="next" title="渲染管线的基础数学">
+      渲染管线的基础数学 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    
+  
+  <div class="comments">
+  <script src="https://utteranc.es/client.js" repo="silence394/silence394.github.io" issue-term="pathname" theme="github-light" crossorigin="anonymous" async=""></script>
+  </div>
+  
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一-多重缓冲"><span class="nav-number">1.</span> <span class="nav-text"> 一、多重缓冲</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-cpu与gpu并行"><span class="nav-number">1.1.</span> <span class="nav-text"> 1、CPU与GPU并行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-多重缓冲"><span class="nav-number">1.2.</span> <span class="nav-text"> 2、多重缓冲</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二-metal三重缓冲的实现"><span class="nav-number">2.</span> <span class="nav-text"> 二、Metal三重缓冲的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-信号量"><span class="nav-number">2.1.</span> <span class="nav-text"> 1、信号量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-metal的实现"><span class="nav-number">2.2.</span> <span class="nav-text"> 2、Metal的实现</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">silence394</p>
+  <div class="site-description" itemprop="description">认识自我、认识世界</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/silence394" title="GitHub → https://github.com/silence394" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">silence394</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">103k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:33</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async="" src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+
+<script src="/bundle.js"></script></body></html>

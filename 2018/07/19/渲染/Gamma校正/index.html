@@ -1,0 +1,573 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.1',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="一、Gamma的由来 早期的CRT（阴极射线管）显示器显示出来的亮度和电压的不是线性关系，而是幂次的关系：$ V_{out} = V_{in}^\gamma$输入电压得到一个亮度，但是想要将这个亮度提高一倍，却无法通过将电压提高一倍来实现。输入的电压和输出的亮度呈下图的关系。  由于CRT的这个物理特性，显示图像的亮度要比图像中存储的数值的亮度低。为了弥补这个问题，需要对图像采集设备做补偿，将图">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Gamma校正">
+<meta property="og:url" content="http://yoursite.com/2018/07/19/%E6%B8%B2%E6%9F%93/Gamma%E6%A0%A1%E6%AD%A3/index.html">
+<meta property="og:site_name" content="知行合一">
+<meta property="og:description" content="一、Gamma的由来 早期的CRT（阴极射线管）显示器显示出来的亮度和电压的不是线性关系，而是幂次的关系：$ V_{out} = V_{in}^\gamma$输入电压得到一个亮度，但是想要将这个亮度提高一倍，却无法通过将电压提高一倍来实现。输入的电压和输出的亮度呈下图的关系。  由于CRT的这个物理特性，显示图像的亮度要比图像中存储的数值的亮度低。为了弥补这个问题，需要对图像采集设备做补偿，将图">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7t9fviekj208w05gdfv.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7t9fvf1ej208c06qgm3.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/c5c3a364ly1fw6eowio2yj20dw046dgr.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/c5c3a364ly1fw6fgdia0gj20k00463ye.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7u8hjtd6j20dw05lt8x.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7x5otbscj207q05pac8.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7yesngv6j208f03l741.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7yefmyahj208f03l741.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/c5c3a364ly1fw9u69x9lgj20lc0e8ag0.jpg">
+<meta property="article:published_time" content="2018-07-18T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-03-10T02:21:44.724Z">
+<meta property="article:author" content="silence394">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7t9fviekj208w05gdfv.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2018/07/19/%E6%B8%B2%E6%9F%93/Gamma%E6%A0%A1%E6%AD%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Gamma校正 | 知行合一</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">知行合一</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/19/%E6%B8%B2%E6%9F%93/Gamma%E6%A0%A1%E6%AD%A3/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Gamma校正
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-07-19 00:00:00" itemprop="dateCreated datePublished" datetime="2018-07-19T00:00:00+08:00">2018-07-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:21:44" itemprop="dateModified" datetime="2020-03-10T10:21:44+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B8%B2%E6%9F%93/" itemprop="url" rel="index">
+                    <span itemprop="name">渲染</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="一-gamma的由来"><a class="markdownIt-Anchor" href="#一-gamma的由来"></a> 一、Gamma的由来</h3>
+<p>早期的CRT（阴极射线管）显示器显示出来的亮度和电压的不是线性关系，而是幂次的关系：$ V_{out} = V_{in}^\gamma$输入电压得到一个亮度，但是想要将这个亮度提高一倍，却无法通过将电压提高一倍来实现。输入的电压和输出的亮度呈下图的关系。<br>
+<img src="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7t9fviekj208w05gdfv.jpg" alt=""><br>
+由于CRT的这个物理特性，显示图像的亮度要比图像中存储的数值的亮度低。为了弥补这个问题，需要对图像采集设备做补偿，将图像中存储的亮度做一个逆幂次变换。经过这两次幂次变换，图像采集的图像与CRT显示的图像能够保持一致。<br>
+<img src="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7t9fvf1ej208c06qgm3.jpg" alt=""><br>
+对颜色施加幂次变换的过程称为Gamma校正。</p>
+<ul>
+<li>一般CRT显示器的γ值为2.5，这个值叫<strong>display gamma</strong>，这个操作称为<strong>gamma compression</strong>。</li>
+<li>对图像捕捉设备做的补偿γ为display gamma的倒数，叫做<strong>encoding gamma</strong>，这个操作称为<strong>gamma expansion</strong>。</li>
+</ul>
+<p>接下来从人感受的角度来分析，这颜色：黑色、中灰、白色。在下面的图中，最左边的为黑色，记为0；最右边的颜色为白色，记为1；正中间的颜色为人眼感受到的中灰（感觉上的黑白的中间点），记为0.5。<br>
+<img src="http://ww1.sinaimg.cn/large/c5c3a364ly1fw6eowio2yj20dw046dgr.jpg" width="512" height="128"><br>
+定义黑色的物理反射率为0%，白色的物理反射率为100%，然而 经过物理测量之后，中灰的物理反射率并不是直觉上的50%，而是20%左右。<br>
+以物理反射率从0%，100%线性变化，做出亮度变化的图：<br>
+<img src="http://ww1.sinaimg.cn/large/c5c3a364ly1fw6fgdia0gj20k00463ye.jpg" width="512" height="128"><br>
+中灰的地方在20%的位置，而图片的大部分都被亮色覆盖了。在这张图中很容易能得出结论：人眼对不同亮度的敏感程度也是不同的，对暗部变化的敏感要高于亮部。</p>
+<p>而早期图像的存储空间有限，常用的RGBA32格式，其每个通道只有8位，也就是说只能存储256种亮度，所以基于人眼的特性，用更多的空间存储亮部，能够更好的利用图像的存储空间。经过科学家基于人眼特性的测量，用0.45的encoding gamma对输入的亮度进行编码，得到一张图像，显示的时候再经过<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mfrac><mn>1</mn><mn>0.45</mn></mfrac></mrow><annotation encoding="application/x-tex">\frac{1}{0.45}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.190108em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">0</span><span class="mord mtight">.</span><span class="mord mtight">4</span><span class="mord mtight">5</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>的display gamma进行解码，就可以显示原本的亮度值。<br>
+多么棒的巧合！CRT的物理特性和人眼对亮度的敏感曲线都是幂次。后来微软、爱普生、惠普共同提供了一套标准方法来定义色彩，也就是现在设计师常用的sRGB（standard Red Green Blue）。在这个标准下，display gamma值为2.2。</p>
+<h3 id="二-为什么需要gamma校正"><a class="markdownIt-Anchor" href="#二-为什么需要gamma校正"></a> 二、为什么需要Gamma校正</h3>
+<p>游戏的真实渲染是为了尽可能的模拟显示的自然环境的光、雾、阴影、折射、反射等效果，如果我们忽视了Gamma的效应，会导致渲染并不具备物理上的正确性。</p>
+<p>设计师做的一张亮度存储为0.5的基于sRGB标准的图像，在经过游戏引擎的光照后，将亮度提升2倍，输出到显示器。如果不考虑Gamma，游戏引擎读取图像后亮度为0.5，经过光照处理后亮度为1.0，再经过显示器的display gamma（2.2）处理，其输出的亮度是1.0。但是这并不符合物理上的规律。由于sRGB标准的图像需要对输入的亮度做encoding gamma(<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mfrac><mn>1</mn><mn>2.2</mn></mfrac></mrow><annotation encoding="application/x-tex">\frac{1}{2.2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.190108em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span><span class="mord mtight">.</span><span class="mord mtight">2</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>)的处理，所以存储数据为0.5对应的物理亮度应当是0.218（<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>0.</mn><msup><mn>5</mn><mn>2.2</mn></msup></mrow><annotation encoding="application/x-tex">0.5^{2.2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord">0</span><span class="mord">.</span><span class="mord"><span class="mord">5</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span><span class="mord mtight">.</span><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span>）。经过光照处理后为0.436。这才是正确的亮度。</p>
+<p>sRGB空间是一个非线性空间，我们在这里称之为<strong>Gamma空间</strong>，而自然界的光照是<strong>线性空间</strong>的运算。CRT显示器的输出是非线性的（<strong>gamma expansion</strong>），要与<strong>encoding gamma</strong>配合使用。所以sRGB空间下图像可以直接显示出原本的样子。但是如果对贴图进行光照运算，必须要把贴图中的值转换到线性空间，线性空间下计算出来的光照必须要经过<strong>encoding gamma</strong>，再由CRT显示器显示才能保证结果的正确性。下面来看一下Gamma空间和线性空间下渲染的区别。</p>
+<h4 id="光照"><a class="markdownIt-Anchor" href="#光照"></a> 光照</h4>
+<p>设想游戏渲染一个这样的场景，平行光照向一个球体，我们从垂直于光照方向的视线观察。在观察空间中球的最右侧的点<strong>A</strong>，经过光照后其亮度为1.0，输出到显示器上的亮度也是1.0。球体上与光线成60°夹角的点<strong>B</strong>，经过光照后的亮度为0.5。经过CRT显示器的display gamma处理，得到最终显示出来的亮度为0.218。这样的话，<strong>A</strong>的亮度是<strong>B</strong>的亮度的<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mfrac><mn>1</mn><mn>0.218</mn></mfrac></mrow><annotation encoding="application/x-tex">\frac{1}{0.218}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.190108em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">0</span><span class="mord mtight">.</span><span class="mord mtight">2</span><span class="mord mtight">1</span><span class="mord mtight">8</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>倍，并不是自然界中的二倍，渲染出来的效果是图<strong>b</strong>中的效果。<br>
+图a中的效果是考虑了显示器的<strong>display gamma</strong>，在显示器显示之前，对计算出来的亮度做了<strong>encoding gamma</strong>，得到亮度值为0.73，再由CRT显示器显示为0.5的亮度。<br>
+<img src="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7u8hjtd6j20dw05lt8x.jpg" alt=""><br>
+对比现实世界中的足球，显然图<strong>a</strong>更真实一些。<br>
+<img src="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7x5otbscj207q05pac8.jpg" alt=""></p>
+<h4 id="滤波"><a class="markdownIt-Anchor" href="#滤波"></a> 滤波</h4>
+<p>一个sRGB下两个相邻的像素红和绿，对这两个像素进行滤波，.<br>
+如果在Gamma空间下滤波，$ (1 + 0) * 0.5 = 0.5$，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>0.5</mn><mo>∗</mo><mn>255</mn><mo>=</mo><mn>128</mn></mrow><annotation encoding="application/x-tex">0.5 * 255 = 128</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span><span class="mord">.</span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord">5</span><span class="mord">5</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">2</span><span class="mord">8</span></span></span></span>，得到的结果是(128, 128, 0)。<br>
+<img src="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7yesngv6j208f03l741.jpg" alt=""><br>
+但是符合物理规律下的滤波应该在线性空间下运算，</p>
+<ol>
+<li><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo stretchy="false">(</mo><mn>1</mn><mo separator="true">,</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(1, 0)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">0</span><span class="mclose">)</span></span></span></span>由<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>p</mi><mi>o</mi><mi>w</mi><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mn>2.2</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">pow(x, 2.2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">p</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">2</span><span class="mord">.</span><span class="mord">2</span><span class="mclose">)</span></span></span></span> 转换到线性空间，得到(0, 1)</li>
+<li>线性空间中进行滤波，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>+</mo><mn>0</mn><mo stretchy="false">)</mo><mo>∗</mo><mn>0.5</mn><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">(1 + 0) * 0.5 = 0.5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">0</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span><span class="mord">.</span><span class="mord">5</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span><span class="mord">.</span><span class="mord">5</span></span></span></span></li>
+<li>线性空间中运算的结果转换到sRGB空间下，<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>p</mi><mi>o</mi><mi>w</mi><mo stretchy="false">(</mo><mn>0.5</mn><mo separator="true">,</mo><mfrac><mn>1</mn><mn>2.2</mn></mfrac><mo stretchy="false">)</mo><mo>=</mo><mn>0.73</mn></mrow><annotation encoding="application/x-tex">pow(0.5, \frac{1}{2.2}) = 0.73</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.190108em;vertical-align:-0.345em;"></span><span class="mord mathdefault">p</span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="mopen">(</span><span class="mord">0</span><span class="mord">.</span><span class="mord">5</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.845108em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span><span class="mord mtight">.</span><span class="mord mtight">2</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0</span><span class="mord">.</span><span class="mord">7</span><span class="mord">3</span></span></span></span><br>
+所以正确的结果是(187, 187, 0)。</li>
+</ol>
+<p><img src="http://ww1.sinaimg.cn/large/c5c3a364ly1fw7yefmyahj208f03l741.jpg" alt=""><br>
+在MipMap中会进行到线性插值，所以带mipmap的图片在Gamma空间滤波后，显示的结果要比正确的结果暗。</p>
+<p>对一个蓝绿色底色和各个颜色的圆盘的图高斯模糊，对比Gamma空间和线性空间下的模糊的结果。在Gamma空间下红色和黄色的圆盘边界处出现了不正常的黑色、绿色。在线性空间下的结果是符合物理规律的。<br>
+<img src="http://ww1.sinaimg.cn/large/c5c3a364ly1fw9u69x9lgj20lc0e8ag0.jpg" alt=""><br>
+在gamma空间Blend出现的异常现象跟上面讲述的是一个原因，不再赘述。</p>
+<h3 id="三-怎么使用gamma校正"><a class="markdownIt-Anchor" href="#三-怎么使用gamma校正"></a> 三、怎么使用Gamma校正</h3>
+<p>使用Gamma校正有两个关键点：</p>
+<ul>
+<li>将读取图像后的空间转换到线性空间</li>
+<li>输出到CRT显示器之前，对线性空间运算的颜色encoding gamma</li>
+</ul>
+<p>当然，Gamma校正是对非线性空间的图像和CRT显示器进行的。而直接存储物理亮度的浮点纹理（HDR图像）和HDR显示器，是不需要做以上操作的。</p>
+<h4 id="空间转换"><a class="markdownIt-Anchor" href="#空间转换"></a> 空间转换</h4>
+<p>sRGB空间是非线性空间，γ为2.2。在shader进行幂次运算是将其转换到线性空间最直接的做法。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float4 color = pow(layer0.Sample(sampler0, uv), 2.2);</span><br></pre></td></tr></tbody></table></figure>
+<p>硬API件一般都支持sRGB格式的图像输入，如D3D11的DXGI_FORMAT_R8G8B8A8_UNORM_SRGB，将图像指定为sRGB格式，就不需要在shader做这个转换了。</p>
+<h4 id="输出到crt显示器"><a class="markdownIt-Anchor" href="#输出到crt显示器"></a> 输出到CRT显示器</h4>
+<p>CRT显示器的输入如果是线性空间下的，其本身的display gamma会导致显示器显示的颜色是非线性的。所以需要对线性空间的输入做encoding gamma，将其转换到非线性空间，再经过display gamma可得到线性的显示输出。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Out.color = pow(color, 1 / 2.2);</span><br><span class="line">return Out;</span><br></pre></td></tr></tbody></table></figure>
+<p>同样的，设置RenderTarget或者BackBuffer的格式是sRGB的，就可以省去shader里的运算，由硬件完成。</p>
+<h3 id="四-总结"><a class="markdownIt-Anchor" href="#四-总结"></a> 四、总结</h3>
+<p>当下的游戏渲染中HDR和PBR是必备的功能，保证光照在线性空间运算，进行gamma校正，是正确渲染的前提。如果没有gamma校正，HDR中的bloom光晕很小，PBR材质的颜色偏暗，细节不明显，美术需要大费周章的去调节其他参数来弥补这个错误。</p>
+<h3 id="参考"><a class="markdownIt-Anchor" href="#参考"></a> 参考</h3>
+<ol>
+<li><a href="https://zhuanlan.zhihu.com/p/36581276" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/36581276</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Gamma_correction" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Gamma_correction</a></li>
+<li><a href="https://www.zhihu.com/question/27467127" target="_blank" rel="noopener">https://www.zhihu.com/question/27467127</a></li>
+<li><a href="https://blog.csdn.net/candycat1992/article/details/46228771" target="_blank" rel="noopener">https://blog.csdn.net/candycat1992/article/details/46228771</a></li>
+<li><a href="https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch24.html" target="_blank" rel="noopener">https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch24.html</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/06/27/%E6%B8%B2%E6%9F%93/%E9%A2%9C%E8%89%B2%E7%A9%BA%E9%97%B4%E4%BB%8B%E7%BB%8D/" rel="prev" title="色彩空间介绍">
+      <i class="fa fa-chevron-left"></i> 色彩空间介绍
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/07/25/%E6%80%A7%E8%83%BD/GPU%E4%B8%BB%E6%B5%81%E6%9E%B6%E6%9E%84/" rel="next" title="移动GPU主流架构">
+      移动GPU主流架构 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    
+  
+  <div class="comments">
+  <script src="https://utteranc.es/client.js" repo="silence394/silence394.github.io" issue-term="pathname" theme="github-light" crossorigin="anonymous" async=""></script>
+  </div>
+  
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#一-gamma的由来"><span class="nav-number">1.</span> <span class="nav-text"> 一、Gamma的由来</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二-为什么需要gamma校正"><span class="nav-number">2.</span> <span class="nav-text"> 二、为什么需要Gamma校正</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#光照"><span class="nav-number">2.1.</span> <span class="nav-text"> 光照</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#滤波"><span class="nav-number">2.2.</span> <span class="nav-text"> 滤波</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三-怎么使用gamma校正"><span class="nav-number">3.</span> <span class="nav-text"> 三、怎么使用Gamma校正</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#空间转换"><span class="nav-number">3.1.</span> <span class="nav-text"> 空间转换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#输出到crt显示器"><span class="nav-number">3.2.</span> <span class="nav-text"> 输出到CRT显示器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四-总结"><span class="nav-number">4.</span> <span class="nav-text"> 四、总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text"> 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">silence394</p>
+  <div class="site-description" itemprop="description">认识自我、认识世界</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/silence394" title="GitHub → https://github.com/silence394" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">silence394</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">103k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:33</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async="" src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+
+<script src="/bundle.js"></script></body></html>

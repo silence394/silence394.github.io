@@ -1,0 +1,564 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.1',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="C++向我们提供了多态的机制。将基类类型的指针，指向子类的实例，通过基类的指针访问子类的函数。本文对虚函数的实现原理及相应的内存布局做了的深入了解。  一、虚函数表的引入 多态的示例如下，语法不再赘述。 12345678910111213141516171819class Base&amp;#123;public:	virtual void FunA() &amp;#123; cout << &quot;Bas">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虚函数的实现原理">
+<meta property="og:url" content="http://yoursite.com/2018/03/28/C++/vptr/index.html">
+<meta property="og:site_name" content="知行合一">
+<meta property="og:description" content="C++向我们提供了多态的机制。将基类类型的指针，指向子类的实例，通过基类的指针访问子类的函数。本文对虚函数的实现原理及相应的内存布局做了的深入了解。  一、虚函数表的引入 多态的示例如下，语法不再赘述。 12345678910111213141516171819class Base&amp;#123;public:	virtual void FunA() &amp;#123; cout << &quot;Bas">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2018/03/29/5abcf4c16841e.bmp">
+<meta property="article:published_time" content="2018-03-27T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-03-10T02:18:33.613Z">
+<meta property="article:author" content="silence394">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2018/03/29/5abcf4c16841e.bmp">
+
+<link rel="canonical" href="http://yoursite.com/2018/03/28/C++/vptr/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>虚函数的实现原理 | 知行合一</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">知行合一</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/28/C++/vptr/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          虚函数的实现原理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-28 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-28T00:00:00+08:00">2018-03-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:18:33" itemprop="dateModified" datetime="2020-03-10T10:18:33+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/C/" itemprop="url" rel="index">
+                    <span itemprop="name">C++</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>9.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>8 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>C++向我们提供了多态的机制。将基类类型的指针，指向子类的实例，通过基类的指针访问子类的函数。本文对虚函数的实现原理及相应的内存布局做了的深入了解。</p>
+<h2 id="一-虚函数表的引入"><a class="markdownIt-Anchor" href="#一-虚函数表的引入"></a> 一、虚函数表的引入</h2>
+<p>多态的示例如下，语法不再赘述。</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Derive</span> :</span> <span class="keyword">public</span> Base</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Derive::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">	Base* base = <span class="keyword">new</span> Derive;</span><br><span class="line">	base-&gt;FunA();</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>得到的输出是：Derive::FunA()。</p>
+<p>C++编译器为了实现多态机制，为每个拥有虚函数的类建立了一个虚函数表（virtual table）。虚函数表中存放的是虚函数的地址，解决了继承、覆盖、新虚函数的添加的问题，保证其真实反映实际的函数。</p>
+<p>编辑器为每个对象实例都创建了一个虚函数表的指针，这个指针指向虚函数表。当发生虚函数调用的时候，通过虚函数指针来找对应虚函数表的函数指针地址，来保证函数的正确调用。</p>
+<p>在vs编译器中，虚函数表的指针存在于对象实例中最前面的位置。这意味着我们通过对象实例的地址得到这张虚函数表，然后就可以遍历其中函数指针，并调用相应的函数。</p>
+<a id="more"></a> 
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Derive derive;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">void</span><span class="params">(*Fun)</span> <span class="params">()</span></span>;</span><br><span class="line">Fun pFun;</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span>** vptr = (<span class="keyword">int</span>**) &amp;derive;</span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">0</span>]; <span class="comment">// 等价于 (Fun)(*((int*)(*vptr + 0) + 0))</span></span><br><span class="line">pFun(); <span class="comment">// Derive::FunA()</span></span><br></pre></td></tr></tbody></table></figure>
+<p>由于虚函数表的指针放在实例中的最前面，将Derive对象的base指针强制转换成int**可以取得虚函数表指针的地址，那么通过(*vptr)[]可以很方便的取到虚函表里的虚函数地址。</p>
+<p>我们通过VS编译器提供的cl命令来查看某个类的内存布局。使用方法如下：</p>
+<ul>
+<li>开始  -&gt; Microsoft Visual Studio 2017  -&gt; x64 Native Tools Command Prompt for VS 2017；</li>
+<li>cl D:\MyGit\c++\Test\Test.cpp /d1reportSingleClassLayoutDerive</li>
+</ul>
+<p>执行完命令,可以看到内存布局为：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">class Derive    size(8):</span><br><span class="line">        +---</span><br><span class="line"> 0      | +--- (base class Base)</span><br><span class="line"> 0      | | {vfptr}</span><br><span class="line">        | +---</span><br><span class="line">        +---</span><br><span class="line"></span><br><span class="line">Derive::$vftable@:</span><br><span class="line">        | &amp;Derive_meta</span><br><span class="line">        |  0</span><br><span class="line"> 0      | &amp;Derive::FunA</span><br></pre></td></tr></tbody></table></figure>
+<p>可以注意到Derive的size显示的是8个字节，这是编译器做了8字节的内存对齐。</p>
+<p>画成图的形式：</p>
+<p><img src="https://i.loli.net/2018/03/29/5abcf4c16841e.bmp" alt="image"></p>
+<p>下面的内存模型的以打印形式展示，不再以图片形式给出，二者是等价的。</p>
+<h2 id="二-单继承的虚函数表"><a class="markdownIt-Anchor" href="#二-单继承的虚函数表"></a> 二、单继承的虚函数表</h2>
+<h3 id="1-无虚函数覆盖"><a class="markdownIt-Anchor" href="#1-无虚函数覆盖"></a> 1、无虚函数覆盖</h3>
+<p>示例如下：</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunB</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base::FunB()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Derive</span> :</span> <span class="keyword">public</span> Base</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunC</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Derive::FunC()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunD</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Derive::FunD()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+<p>在这个继承中，子类没有重写父类的方法，而是加入了两个新的虚函数，内存模型如下：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">class Derive    size(8):</span><br><span class="line">        +---</span><br><span class="line"> 0      | +--- (base class Base)</span><br><span class="line"> 0      | | {vfptr}</span><br><span class="line">        | +---</span><br><span class="line">        +---</span><br><span class="line"></span><br><span class="line">Derive::$vftable@:</span><br><span class="line">        | &amp;Derive_meta</span><br><span class="line">        |  0</span><br><span class="line"> 0      | &amp;Base::FunA</span><br><span class="line"> 1      | &amp;Base::FunB</span><br><span class="line"> 2      | &amp;Derive::FunC</span><br><span class="line"> 3      | &amp;Derive::FunD</span><br></pre></td></tr></tbody></table></figure>
+<p>可以看到子类新增的虚函数按照声明顺序，依次存放在虚函数表中。</p>
+<p>写代码测试证明：</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Derive derive;</span><br><span class="line">Fun pFun;</span><br><span class="line"><span class="keyword">int</span>** vptr = (<span class="keyword">int</span>**) &amp;derive;</span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">0</span>]; <span class="comment">// 等价于 (Fun)(*((int*)(*vptr + 0) + 0))</span></span><br><span class="line">pFun(); <span class="comment">// Output: Base::FunA()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">1</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Base::FunB()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">2</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Derive::FunC()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">3</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Derive::FunD()</span></span><br></pre></td></tr></tbody></table></figure>
+<h3 id="2-有虚函数覆盖"><a class="markdownIt-Anchor" href="#2-有虚函数覆盖"></a> 2、有虚函数覆盖</h3>
+<p>示例如下：</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunB</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base::FunB()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Derive</span> :</span> <span class="keyword">public</span> Base</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Derive::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunC</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Derive::FunC()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+<p>子类重写了父类的FunA方法，内存模型如下：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">class Derive    size(8):</span><br><span class="line">        +---</span><br><span class="line"> 0      | +--- (base class Base)</span><br><span class="line"> 0      | | {vfptr}</span><br><span class="line">        | +---</span><br><span class="line">        +---</span><br><span class="line"></span><br><span class="line">Derive::$vftable@:</span><br><span class="line">        | &amp;Derive_meta</span><br><span class="line">        |  0</span><br><span class="line"> 0      | &amp;Derive::FunA</span><br><span class="line"> 1      | &amp;Base::FunB</span><br><span class="line"> 2      | &amp;Derive::FunC</span><br></pre></td></tr></tbody></table></figure>
+<p>在继承的时候，子类重写的虚函数将在虚函数表中替代父类的虚函数，新增的虚函数按照声明顺序以此存放在虚函数表中。</p>
+<p>测试证明：</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Derive derive;</span><br><span class="line">Fun pFun;</span><br><span class="line"><span class="keyword">int</span>** vptr = (<span class="keyword">int</span>**) &amp;derive;</span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">0</span>]; <span class="comment">// 等价于 (Fun)(*((int*)(*vptr + 0) + 0))</span></span><br><span class="line">pFun(); <span class="comment">// Output: Derive::FunA()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">1</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Base::FunB()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">2</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Derive::FunC()</span></span><br></pre></td></tr></tbody></table></figure>
+<h2 id="三-多继承的虚函数表"><a class="markdownIt-Anchor" href="#三-多继承的虚函数表"></a> 三、多继承的虚函数表</h2>
+<h3 id="1-无虚函数覆盖-2"><a class="markdownIt-Anchor" href="#1-无虚函数覆盖-2"></a> 1、无虚函数覆盖</h3>
+<p>子类继承父类，并且子类无函数重载，示例如下：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">class Base</span><br><span class="line">{</span><br><span class="line">public:</span><br><span class="line">	virtual void FunA() { cout &lt;&lt; "Base::FunA()" &lt;&lt; endl; }</span><br><span class="line">	virtual void FunB() { cout &lt;&lt; "Base::FunB()" &lt;&lt; endl; }</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">class Base1</span><br><span class="line">{</span><br><span class="line">public:</span><br><span class="line">	virtual void FunA() { cout &lt;&lt; "Base1::FunA()" &lt;&lt; endl; }</span><br><span class="line">	virtual void FunB() { cout &lt;&lt; "Base1::FunB()" &lt;&lt; endl; }</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">class Base2</span><br><span class="line">{</span><br><span class="line">public:</span><br><span class="line">	virtual void FunA() { cout &lt;&lt; "Base2::FunA()" &lt;&lt; endl; }</span><br><span class="line">	virtual void FunB() { cout &lt;&lt; "Base2::FunB()" &lt;&lt; endl; }</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line">class Derive : public Base, public Base1, public Base2</span><br><span class="line">{</span><br><span class="line">public:</span><br><span class="line">	virtual void FunC() { cout &lt;&lt; "Derive::FunC()" &lt;&lt; endl; }</span><br><span class="line">	virtual void FunD() { cout &lt;&lt; "Derive::FunD()" &lt;&lt; endl; }</span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+<p>打印内存模型：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">class Derive    size(24):</span><br><span class="line">        +---</span><br><span class="line"> 0      | +--- (base class Base)</span><br><span class="line"> 0      | | {vfptr}</span><br><span class="line">        | +---</span><br><span class="line"> 8      | +--- (base class Base1)</span><br><span class="line"> 8      | | {vfptr}</span><br><span class="line">        | +---</span><br><span class="line">16      | +--- (base class Base2)</span><br><span class="line">16      | | {vfptr}</span><br><span class="line">        | +---</span><br><span class="line">        +---</span><br><span class="line"></span><br><span class="line">Derive::$vftable@Base@:</span><br><span class="line">        | &amp;Derive_meta</span><br><span class="line">        |  0</span><br><span class="line"> 0      | &amp;Base::FunA</span><br><span class="line"> 1      | &amp;Base::FunB</span><br><span class="line"> 2      | &amp;Derive::FunC</span><br><span class="line"> 3      | &amp;Derive::FunD</span><br><span class="line"></span><br><span class="line">Derive::$vftable@Base1@:</span><br><span class="line">        | -8</span><br><span class="line"> 0      | &amp;Base1::FunA</span><br><span class="line"> 1      | &amp;Base1::FunB</span><br><span class="line"></span><br><span class="line">Derive::$vftable@Base2@:</span><br><span class="line">        | -16</span><br><span class="line"> 0      | &amp;Base2::FunA</span><br><span class="line"> 1      | &amp;Base2::FunB</span><br></pre></td></tr></tbody></table></figure>
+<p>多重继承下，虚函数表指针的数量与父类的数量一致，此例中，有三个虚函数表的指针，在实例中依次存放。子类中新加的虚函数会以声明顺序添加到第一个虚函数表中。<br>
+写例子测试结果如下：</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">Derive derive;</span><br><span class="line">Fun pFun;</span><br><span class="line"><span class="keyword">int</span>** vptr = (<span class="keyword">int</span>**) &amp;derive;</span><br><span class="line">pFun = (Fun)vptr[<span class="number">0</span>][<span class="number">0</span>]; <span class="comment">// 等价于 (Fun)(*((int*)(*vptr + 0) + 0))</span></span><br><span class="line">pFun(); <span class="comment">// Output: Base::FunA()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)vptr[<span class="number">0</span>][<span class="number">1</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Base::FunB()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)vptr[<span class="number">0</span>][<span class="number">2</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Derive::FunC()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)vptr[<span class="number">0</span>][<span class="number">3</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Derive::FunD()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)vptr[<span class="number">1</span>][<span class="number">0</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Base1::FunA()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)vptr[<span class="number">1</span>][<span class="number">1</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Base1::FunB()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)vptr[<span class="number">2</span>][<span class="number">0</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Base2::FunA()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)vptr[<span class="number">2</span>][<span class="number">1</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Base2::FunB()</span></span><br></pre></td></tr></tbody></table></figure>
+<p>另外通过不同的指针来访问，调用对应的虚函数。</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Base* base = &amp;derive;</span><br><span class="line">Base1* base1 = &amp;derive;</span><br><span class="line">Base2* base2 = &amp;derive;</span><br><span class="line"></span><br><span class="line">base-&gt;FunA(); <span class="comment">// Output: Base::FunA()</span></span><br><span class="line">base1-&gt;FunA(); <span class="comment">// Output: Base1::FunA()</span></span><br><span class="line">base2-&gt;FunA(); <span class="comment">// Output: Base2::FunA()</span></span><br></pre></td></tr></tbody></table></figure>
+<p>在Debug的时候会发现三个指针并不相同并且差了四个字节，编译器为我们做了偏移操作使虚函数表的指针指向对应的虚函数表。在第四部分再进行简单的介绍原理。</p>
+<h3 id="2-有虚函数覆盖-2"><a class="markdownIt-Anchor" href="#2-有虚函数覆盖-2"></a> 2、有虚函数覆盖</h3>
+<p>有虚函数覆盖的多重继承示例如下：</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunB</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base::FunB()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base1</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base1::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunB</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base1::FunB()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base2</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base2::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunB</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base2::FunB()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Derive</span> :</span> <span class="keyword">public</span> Base, <span class="keyword">public</span> Base1, <span class="keyword">public</span> Base2</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Derive::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunC</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Derive::FunC()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+<p>打印内存模型如下：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">class Derive    size(24):</span><br><span class="line">        +---</span><br><span class="line"> 0      | +--- (base class Base)</span><br><span class="line"> 0      | | {vfptr}</span><br><span class="line">        | +---</span><br><span class="line"> 8      | +--- (base class Base1)</span><br><span class="line"> 8      | | {vfptr}</span><br><span class="line">        | +---</span><br><span class="line">16      | +--- (base class Base2)</span><br><span class="line">16      | | {vfptr}</span><br><span class="line">        | +---</span><br><span class="line">        +---</span><br><span class="line"></span><br><span class="line">Derive::$vftable@Base@:</span><br><span class="line">        | &amp;Derive_meta</span><br><span class="line">        |  0</span><br><span class="line"> 0      | &amp;Derive::FunA</span><br><span class="line"> 1      | &amp;Base::FunB</span><br><span class="line"> 2      | &amp;Derive::FunC</span><br><span class="line"></span><br><span class="line">Derive::$vftable@Base1@:</span><br><span class="line">        | -8</span><br><span class="line"> 0      | &amp;thunk: this-=8; goto Derive::FunA</span><br><span class="line"> 1      | &amp;Base1::FunB</span><br><span class="line"></span><br><span class="line">Derive::$vftable@Base2@:</span><br><span class="line">        | -16</span><br><span class="line"> 0      | &amp;thunk: this-=16; goto Derive::FunA</span><br><span class="line"> 1      | &amp;Base2::FunB</span><br></pre></td></tr></tbody></table></figure>
+<p>子类重载的虚函数会替换所有虚函数表里父类的虚函数，新加的虚函数会加到第一个虚函数表中。验证测试就不再贴出。</p>
+<h3 id="3-带有成员变量和虚函数的多重继承内存模型"><a class="markdownIt-Anchor" href="#3-带有成员变量和虚函数的多重继承内存模型"></a> 3、带有成员变量和虚函数的多重继承内存模型</h3>
+<p>以上例子的类中都不具有成员变量，虚函数表的指针在类示例中依次存放。在这个部分，在上面例子中基础上给类加上成员变量，更加清楚地了解类示例的内存模型。</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunB</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base::FunB()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="keyword">int</span> a;</span><br><span class="line">	<span class="keyword">int</span> b;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base1</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base1::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunB</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base1::FunB()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="keyword">int</span> a;</span><br><span class="line">	<span class="keyword">int</span> b;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base2</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base2::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunB</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Base2::FunB()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="keyword">int</span> a;</span><br><span class="line">	<span class="keyword">int</span> b;</span><br><span class="line">};</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Derive</span> :</span> <span class="keyword">public</span> Base, <span class="keyword">public</span> Base1, <span class="keyword">public</span> Base2</span><br><span class="line">{</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunA</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Derive::FunA()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">FunC</span><span class="params">()</span> </span>{ <span class="built_in">cout</span> &lt;&lt; <span class="string">"Derive::FunC()"</span> &lt;&lt; <span class="built_in">endl</span>; }</span><br><span class="line">	<span class="keyword">int</span> a;</span><br><span class="line">	<span class="keyword">int</span> b;</span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+<p>打印内存模型：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">class Derive    size(56):</span><br><span class="line">        +---</span><br><span class="line"> 0      | +--- (base class Base)</span><br><span class="line"> 0      | | {vfptr}</span><br><span class="line"> 8      | | a</span><br><span class="line">12      | | b</span><br><span class="line">        | +---</span><br><span class="line">16      | +--- (base class Base1)</span><br><span class="line">16      | | {vfptr}</span><br><span class="line">24      | | a</span><br><span class="line">28      | | b</span><br><span class="line">        | +---</span><br><span class="line">32      | +--- (base class Base2)</span><br><span class="line">32      | | {vfptr}</span><br><span class="line">40      | | a</span><br><span class="line">44      | | b</span><br><span class="line">        | +---</span><br><span class="line">48      | a</span><br><span class="line">52      | b</span><br><span class="line">        +---</span><br><span class="line"></span><br><span class="line">Derive::$vftable@Base@:</span><br><span class="line">        | &amp;Derive_meta</span><br><span class="line">        |  0</span><br><span class="line"> 0      | &amp;Derive::FunA</span><br><span class="line"> 1      | &amp;Base::FunB</span><br><span class="line"> 2      | &amp;Derive::FunC</span><br><span class="line"></span><br><span class="line">Derive::$vftable@Base1@:</span><br><span class="line">        | -16</span><br><span class="line"> 0      | &amp;thunk: this-=16; goto Derive::FunA</span><br><span class="line"> 1      | &amp;Base1::FunB</span><br><span class="line"></span><br><span class="line">Derive::$vftable@Base2@:</span><br><span class="line">        | -32</span><br><span class="line"> 0      | &amp;thunk: this-=32; goto Derive::FunA</span><br><span class="line"> 1      | &amp;Base2::FunB</span><br></pre></td></tr></tbody></table></figure>
+<p>可以清晰的看到，示例的虚函数表指针不再是连续存放，父类按顺序存放，此时要把成员变量的内存占用考虑进去。写例子验证如下：</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">Derive derive;</span><br><span class="line">Fun pFun;</span><br><span class="line"><span class="keyword">int</span>** vptr = (<span class="keyword">int</span>**) &amp;derive;</span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">0</span>]; <span class="comment">// 等价于 (Fun)(*((int*)(*vptr + 0) + 0))</span></span><br><span class="line">pFun(); <span class="comment">// Output: Derive::FunA()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">1</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Base::FunB()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">2</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Derive::FunC()</span></span><br><span class="line"></span><br><span class="line">vptr += <span class="keyword">sizeof</span>(Base) / <span class="keyword">sizeof</span>(<span class="keyword">int</span>);</span><br><span class="line"></span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">0</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Derive::FunA()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">1</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Base1::FunB()</span></span><br><span class="line"></span><br><span class="line">vptr += <span class="keyword">sizeof</span>(Base1) / <span class="keyword">sizeof</span>(<span class="keyword">int</span>);</span><br><span class="line"></span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">0</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Derive::FunA()</span></span><br><span class="line"></span><br><span class="line">pFun = (Fun)(*vptr)[<span class="number">1</span>];</span><br><span class="line">pFun(); <span class="comment">// Output: Base2::FunB()</span></span><br></pre></td></tr></tbody></table></figure>
+<h2 id="四-指针的表现"><a class="markdownIt-Anchor" href="#四-指针的表现"></a> 四、指针的表现</h2>
+<p>以上节带有成员变量和虚函数的多重继承为例，使用不同的父类指针指向子类：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Base* pbase = &amp;derive;</span><br><span class="line">Base1* pbase1 = &amp;derive;</span><br><span class="line">Base2* pbase2 = &amp;derive;</span><br></pre></td></tr></tbody></table></figure>
+<p>Base是第一父类，所以pbase指向的是derive对象的地址，编译器不需要做指针的偏移。<br>
+Base1是第二个父类，Base1的大小是12个字节，所以pbase1的地址是在基址的基础上加上12字节的便宜，即指向Base2的位置。<br>
+同理pbase2在基指上加上24个字节，指向Base3的位置。</p>
+<p>但是当发生指针强制转换时，指针的地址没有发生变化。成员变量/虚函数与成员函数不同，成员变量/虚函数的访问会根据指针实际的地址来决定，而成员函数的调用会根据指针的类型来调用。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2018/04/04/%E5%81%A5%E8%BA%AB/%E5%81%A5%E8%BA%AB%E5%88%9D%E7%BA%A7%E8%AE%AD%E7%BB%83-%E8%85%BF%E9%83%A8/" rel="next" title="健身初级训练-腿部">
+      健身初级训练-腿部 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    
+  
+  <div class="comments">
+  <script src="https://utteranc.es/client.js" repo="silence394/silence394.github.io" issue-term="pathname" theme="github-light" crossorigin="anonymous" async=""></script>
+  </div>
+  
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一-虚函数表的引入"><span class="nav-number">1.</span> <span class="nav-text"> 一、虚函数表的引入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二-单继承的虚函数表"><span class="nav-number">2.</span> <span class="nav-text"> 二、单继承的虚函数表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-无虚函数覆盖"><span class="nav-number">2.1.</span> <span class="nav-text"> 1、无虚函数覆盖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-有虚函数覆盖"><span class="nav-number">2.2.</span> <span class="nav-text"> 2、有虚函数覆盖</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三-多继承的虚函数表"><span class="nav-number">3.</span> <span class="nav-text"> 三、多继承的虚函数表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-无虚函数覆盖-2"><span class="nav-number">3.1.</span> <span class="nav-text"> 1、无虚函数覆盖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-有虚函数覆盖-2"><span class="nav-number">3.2.</span> <span class="nav-text"> 2、有虚函数覆盖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-带有成员变量和虚函数的多重继承内存模型"><span class="nav-number">3.3.</span> <span class="nav-text"> 3、带有成员变量和虚函数的多重继承内存模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#四-指针的表现"><span class="nav-number">4.</span> <span class="nav-text"> 四、指针的表现</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">silence394</p>
+  <div class="site-description" itemprop="description">认识自我、认识世界</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/silence394" title="GitHub → https://github.com/silence394" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">silence394</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">103k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:33</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async="" src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+
+<script src="/bundle.js"></script></body></html>

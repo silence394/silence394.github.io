@@ -1,0 +1,558 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.1',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="在TBR GPU上，将像素重新写到memorybuffer上的操作可以省略，但是shadering 还是要执行。 PowerVR的GPU上不存在这个问题，因为会先画深度。也叫TBDR. Single Programe Multiple Data Single Instrction Multiple Data Single Instrction multiple Thread Single Inst">
+<meta property="og:type" content="article">
+<meta property="og:title" content="移动GPU主流架构">
+<meta property="og:url" content="http://yoursite.com/2018/07/25/%E6%80%A7%E8%83%BD/GPU%E4%B8%BB%E6%B5%81%E6%9E%B6%E6%9E%84/index.html">
+<meta property="og:site_name" content="知行合一">
+<meta property="og:description" content="在TBR GPU上，将像素重新写到memorybuffer上的操作可以省略，但是shadering 还是要执行。 PowerVR的GPU上不存在这个问题，因为会先画深度。也叫TBDR. Single Programe Multiple Data Single Instrction Multiple Data Single Instrction multiple Thread Single Inst">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-07-24T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-03-10T02:22:00.268Z">
+<meta property="article:author" content="silence394">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2018/07/25/%E6%80%A7%E8%83%BD/GPU%E4%B8%BB%E6%B5%81%E6%9E%B6%E6%9E%84/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>移动GPU主流架构 | 知行合一</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">知行合一</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/25/%E6%80%A7%E8%83%BD/GPU%E4%B8%BB%E6%B5%81%E6%9E%B6%E6%9E%84/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          移动GPU主流架构
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-07-25 00:00:00" itemprop="dateCreated datePublished" datetime="2018-07-25T00:00:00+08:00">2018-07-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:22:00" itemprop="dateModified" datetime="2020-03-10T10:22:00+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%80%A7%E8%83%BD/" itemprop="url" rel="index">
+                    <span itemprop="name">性能</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在TBR GPU上，将像素重新写到memorybuffer上的操作可以省略，但是shadering 还是要执行。</p>
+<p>PowerVR的GPU上不存在这个问题，因为会先画深度。也叫TBDR.</p>
+<p>Single Programe Multiple Data</p>
+<p>Single Instrction Multiple Data</p>
+<p>Single Instrction multiple Thread</p>
+<p>Single Instruction Multiple Thread</p>
+<h3 id="gpu架构"><a class="markdownIt-Anchor" href="#gpu架构"></a> GPU架构</h3>
+<p>PowerVR使用了一种叫做Tile Based Deferred Rendering的架构，简称TBDR。在图形管线里尽早地减少冗余操作，减少带宽和电量的使用。</p>
+<p>CPU处理多分支少数据的任务，线程处理的任务一般与其他任务无关。一般CPU的核心数为四到八个。</p>
+<p>GPU在多个线程中执行相同的命令，处理不同的数据(SIMD)。SIMD的好处是相当数量的线程以一个很高的效率并行执行命令。很擅长处理大量相关的数据，如图像处理这种需要一次处理大量数据的算法。</p>
+<p>一般3到4个元素，对SIMD是比较合适的，如果处理较少的数据，会有浪费的现象。如处理3个元素，只有75%的效率运行这些指令。</p>
+<h4 id="immediate-mode-rendererimr"><a class="markdownIt-Anchor" href="#immediate-mode-rendererimr"></a> Immediate Mode Renderer(IMR)</h4>
+<h4 id="tile-based-renderertbr"><a class="markdownIt-Anchor" href="#tile-based-renderertbr"></a> Tile Based Renderer(TBR)</h4>
+<h4 id="tile-based-deferred-renderertbdr"><a class="markdownIt-Anchor" href="#tile-based-deferred-renderertbdr"></a> Tile Based Deferred Renderer(TBDR)</h4>
+<p>不要在一帧里面频繁的切换framebuffer<br>
+每一次bindunbind都需要对整个framebuffer的一次立即绘制</p>
+<ol start="8">
+<li>Do Not Use Discard</li>
+</ol>
+<p>参考：</p>
+<ol>
+<li>
+<p><a href="http://www.expreview.com/24705-3.html" target="_blank" rel="noopener">http://www.expreview.com/24705-3.html</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/leonwei/article/details/79298381" target="_blank" rel="noopener">https://blog.csdn.net/leonwei/article/details/79298381</a></p>
+</li>
+<li>
+<p><a href="http://alanliu90.hatenablog.com/entry/2017/08/27/%E7%A7%BB%E5%8A%A8%E5%B9%B3%E5%8F%B0GPU" target="_blank" rel="noopener">http://alanliu90.hatenablog.com/entry/2017/08/27/移动平台GPU</a></p>
+</li>
+<li>
+<p>PowerVR Hardware.Architecture Overview for Developers</p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/leonwei/article/details/79298381" target="_blank" rel="noopener">https://blog.csdn.net/leonwei/article/details/79298381</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/u013467442/article/details/40686523" target="_blank" rel="noopener">https://blog.csdn.net/u013467442/article/details/40686523</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/pizi0475/article/details/58627435" target="_blank" rel="noopener">https://blog.csdn.net/pizi0475/article/details/58627435</a></p>
+</li>
+<li>
+<p><a href="https://www.zhihu.com/question/20720436/answer/151341206" target="_blank" rel="noopener">https://www.zhihu.com/question/20720436/answer/151341206</a></p>
+</li>
+<li>
+<p><a href="https://www.zhihu.com/question/20720436" target="_blank" rel="noopener">https://www.zhihu.com/question/20720436</a></p>
+</li>
+<li>
+<p><a href="https://stackoverflow.com/questions/4853856/why-are-draw-calls-expensive" target="_blank" rel="noopener">https://stackoverflow.com/questions/4853856/why-are-draw-calls-expensive</a></p>
+</li>
+<li>
+<p><a href="https://docs.microsoft.com/zh-cn/windows/desktop/direct3d9/accurately-profiling-direct3d-api-calls" target="_blank" rel="noopener">https://docs.microsoft.com/zh-cn/windows/desktop/direct3d9/accurately-profiling-direct3d-api-calls</a></p>
+</li>
+<li>
+<p><a href="http://c0de517e.blogspot.com/2008/04/gpu-part-1.html" target="_blank" rel="noopener">http://c0de517e.blogspot.com/2008/04/gpu-part-1.html</a></p>
+</li>
+<li>
+<p><a href="https://www.zhihu.com/question/54037063" target="_blank" rel="noopener">https://www.zhihu.com/question/54037063</a></p>
+</li>
+<li>
+<p><a href="http://www.cnblogs.com/gameknife/p/3515714.html" target="_blank" rel="noopener">http://www.cnblogs.com/gameknife/p/3515714.html</a></p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/07/19/%E6%B8%B2%E6%9F%93/Gamma%E6%A0%A1%E6%AD%A3/" rel="prev" title="Gamma校正">
+      <i class="fa fa-chevron-left"></i> Gamma校正
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/07/27/%E5%B7%A5%E5%85%B7/git%E4%BC%A0%E8%BE%93%E9%80%9F%E5%BA%A6%E6%85%A2%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" rel="next" title="git传输速度慢的解决方案">
+      git传输速度慢的解决方案 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    
+  
+  <div class="comments">
+  <script src="https://utteranc.es/client.js" repo="silence394/silence394.github.io" issue-term="pathname" theme="github-light" crossorigin="anonymous" async=""></script>
+  </div>
+  
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#gpu架构"><span class="nav-number">1.</span> <span class="nav-text"> GPU架构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#immediate-mode-rendererimr"><span class="nav-number">1.1.</span> <span class="nav-text"> Immediate Mode Renderer(IMR)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#tile-based-renderertbr"><span class="nav-number">1.2.</span> <span class="nav-text"> Tile Based Renderer(TBR)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#tile-based-deferred-renderertbdr"><span class="nav-number">1.3.</span> <span class="nav-text"> Tile Based Deferred Renderer(TBDR)</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">silence394</p>
+  <div class="site-description" itemprop="description">认识自我、认识世界</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/silence394" title="GitHub → https://github.com/silence394" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">silence394</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">103k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:33</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async="" src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+
+<script src="/bundle.js"></script></body></html>

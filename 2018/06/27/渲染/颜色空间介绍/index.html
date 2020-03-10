@@ -1,0 +1,596 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.1',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="之前在做HDR的时候，ToneMap一直无法取得较好的效果，最后发现是色彩空间的问题。在pixelshader的时候没有把颜色的计算转换到线性空间来做，经过ToneMap处理的结果也是有问题。 之前对颜色的认知还停留在三原色的阶段，对颜色的很多概念如HSV, SRGB空间等一知半解。所以对色彩和颜色的基础知识进行了系统了学习，总结了一下。  一、 颜色是什么？ 颜色是光给人的感觉，这句话包含了两个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="色彩空间介绍">
+<meta property="og:url" content="http://yoursite.com/2018/06/27/%E6%B8%B2%E6%9F%93/%E9%A2%9C%E8%89%B2%E7%A9%BA%E9%97%B4%E4%BB%8B%E7%BB%8D/index.html">
+<meta property="og:site_name" content="知行合一">
+<meta property="og:description" content="之前在做HDR的时候，ToneMap一直无法取得较好的效果，最后发现是色彩空间的问题。在pixelshader的时候没有把颜色的计算转换到线性空间来做，经过ToneMap处理的结果也是有问题。 之前对颜色的认知还停留在三原色的阶段，对颜色的很多概念如HSV, SRGB空间等一知半解。所以对色彩和颜色的基础知识进行了系统了学习，总结了一下。  一、 颜色是什么？ 颜色是光给人的感觉，这句话包含了两个">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2018/07/08/5b42195a81fd2.jpg">
+<meta property="og:image" content="https://i.loli.net/2018/07/08/5b421f15450ac.png">
+<meta property="og:image" content="https://i.loli.net/2018/07/08/5b421f154374c.png">
+<meta property="og:image" content="https://i.loli.net/2018/07/09/5b437180f33b0.png">
+<meta property="og:image" content="https://i.loli.net/2018/07/09/5b437736822fc.png">
+<meta property="og:image" content="https://i.loli.net/2018/07/09/5b437d1755ea3.png">
+<meta property="og:image" content="https://i.loli.net/2018/07/09/5b437d1752fa9.png">
+<meta property="og:image" content="https://i.loli.net/2018/07/08/5b42263f46e24.png">
+<meta property="og:image" content="https://i.loli.net/2018/07/10/5b44cedd31240.png">
+<meta property="og:image" content="https://i.loli.net/2018/07/08/5b422a1623546.png">
+<meta property="og:image" content="https://i.loli.net/2018/07/10/5b44d291c73c1.png">
+<meta property="og:image" content="https://i.loli.net/2018/07/11/5b462742d428e.png">
+<meta property="og:image" content="https://i.loli.net/2018/07/11/5b4627dc9843a.png">
+<meta property="og:image" content="https://i.loli.net/2018/07/12/5b462b648f74c.png">
+<meta property="article:published_time" content="2018-06-26T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-03-10T02:21:12.292Z">
+<meta property="article:author" content="silence394">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2018/07/08/5b42195a81fd2.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2018/06/27/%E6%B8%B2%E6%9F%93/%E9%A2%9C%E8%89%B2%E7%A9%BA%E9%97%B4%E4%BB%8B%E7%BB%8D/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>色彩空间介绍 | 知行合一</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">知行合一</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/27/%E6%B8%B2%E6%9F%93/%E9%A2%9C%E8%89%B2%E7%A9%BA%E9%97%B4%E4%BB%8B%E7%BB%8D/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          色彩空间介绍
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-06-27 00:00:00" itemprop="dateCreated datePublished" datetime="2018-06-27T00:00:00+08:00">2018-06-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:21:12" itemprop="dateModified" datetime="2020-03-10T10:21:12+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B8%B2%E6%9F%93/" itemprop="url" rel="index">
+                    <span itemprop="name">渲染</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>之前在做HDR的时候，ToneMap一直无法取得较好的效果，最后发现是色彩空间的问题。在pixelshader的时候没有把颜色的计算转换到线性空间来做，经过ToneMap处理的结果也是有问题。</p>
+<p>之前对颜色的认知还停留在三原色的阶段，对颜色的很多概念如HSV, SRGB空间等一知半解。所以对色彩和颜色的基础知识进行了系统了学习，总结了一下。</p>
+<h2 id="一-颜色是什么"><a class="markdownIt-Anchor" href="#一-颜色是什么"></a> 一、 颜色是什么？</h2>
+<p>颜色是光给人的感觉，这句话包含了两个方面：光的特性和人眼的感觉。简单的认为颜色只是光的属性的是不准确的，因为在不同的环境下，同一种波长的光，人感觉到的颜色可能并不相同。</p>
+<a id="more"></a> 
+<h3 id="1-光的属性"><a class="markdownIt-Anchor" href="#1-光的属性"></a> 1、光的属性</h3>
+<p>在物理学中，光是一个狭窄频段内的电磁辐射。包括可见光、无线电波、微波、红外线和X射线。在可见光波段里每一种频率对应一种单独的光谱颜色。从低频到高频的光谱颜色变化为红、橙、黄、绿、蓝和紫。波长越短频率越高，能量越强，也就是说蓝光要比红光色温要搞，但是人眼感觉红色更暖，蓝色更冷。在美术领域常用的色温就是红暖，蓝冷，注意要与物理学中的区分。</p>
+<p>太阳、灯泡等光源发射可见波段的全部频率而产生白色光。当白色光投射到一个物体上时，某些频率被反射，某些频率被吸收。在反射光中混合的频率确定了我们所能感受到的物体的颜色。如果在反射光中以低频率为主，则物体呈现为红色。我们可以说光谱中红色段有一个主频率，也就是光的颜色，即颜色。</p>
+<h3 id="2-人眼的感觉"><a class="markdownIt-Anchor" href="#2-人眼的感觉"></a> 2、人眼的感觉</h3>
+<p>人对色彩感知的过程可以简单的分为两个阶段：</p>
+<ul>
+<li>识别波长：视网膜上有三种视锥细胞分别对可见光的短波长、中波长、长波长最敏感，不同的光线条件给予三种视锥细胞不同的刺激强度</li>
+<li>生产色彩信号：视锥细胞的刺激传达到视神经，视神经有蓝-黄、红-绿两个色彩通道和一个传达亮度的非色彩通道。色彩通道中的黄、蓝相互对立，红、绿相互对立，即拮抗作用，最终以蓝-黄、红-绿、明暗程度的形式被传送给大脑</li>
+</ul>
+<p>色彩构成的三种基本属性如下。</p>
+<blockquote>
+<p>色相 Hue</p>
+</blockquote>
+<p>又被称为色调，是颜色的首要特征，通俗的说就是红、橙、黄、绿……的特征。改变色相比同等程度地改变饱和度或亮度感受的色彩变化更大，所以是颜色的首要特征。下图就是色相环：</p>
+<img src="https://i.loli.net/2018/07/08/5b42195a81fd2.jpg" width="128" height="128">
+<blockquote>
+<p>饱和度 Saturation</p>
+</blockquote>
+<p>又被称为纯度，是指色向上的纯色混杂上白色，灰色或者其他色调的颜色，使色彩变得不饱和。越接近色环的纯色，饱和度越高。绿色的饱和度变化：</p>
+<img src="https://i.loli.net/2018/07/08/5b421f15450ac.png">
+<blockquote>
+<p>明度 Brightness</p>
+</blockquote>
+<p>色彩的明亮程度。从全黑到色环上的纯色，明度越来越高。绿色的明度变化：</p>
+<img src="https://i.loli.net/2018/07/08/5b421f154374c.png">
+<h2 id="二-颜色模型"><a class="markdownIt-Anchor" href="#二-颜色模型"></a> 二、颜色模型</h2>
+<p>根据人眼的视觉特点，将颜色按照一定的规则进行排列，将系统进行系统化的组织。这些规则建立的模型就是我们常说的颜色模型。颜色模型是在某种特定的上下文中对颜色的特性和行为的解释方法。没有哪一种模型能解释所有的颜色问题，因此使用不同的模型来帮助说明能看到的的不同的颜色特征。</p>
+<p>当光由两个或多个具有不同主频率的光源混合而成时，我们可以改变各个光源的强度来生成一系列其他颜色的光，这些用来生成其他颜色的光源色彩成为基色。用了三种基色定义的常用的颜色模型有RGB,YIQ,和CMYK模型。在软件领域常常会提供HSV这样的直观颜色模型用于选择颜色。</p>
+<h3 id="1-rgb"><a class="markdownIt-Anchor" href="#1-rgb"></a> 1、RGB</h3>
+<p>基于三刺激理论，我们的眼睛通过光对失望的锥状细胞的三种视色素感受颜色。这种三种色度分别对红、绿、蓝的光最敏感。将红、绿、蓝三种颜色作为基色，就是RGB颜色模型。我们可以使用由R、G和B坐标轴定义的单位立方体来描述这个模型。坐标原点为黑色，对角坐标（1， 1， 1）代表白色。用RGB颜色模型选取颜色(0.3, 0.4, 0.5)，普通人很难知道是什么颜色，但是对RGB显示器而言是个很方便。</p>
+<img src="https://i.loli.net/2018/07/09/5b437180f33b0.png" width="50%" height="50%">
+<h3 id="2-yiq"><a class="markdownIt-Anchor" href="#2-yiq"></a> 2、YIQ</h3>
+<p>RGB显示器使用红、蓝、绿三种信号，电视监视器使用组合信号。形成组合视频信号的就是YIQ颜色模型。颜色的亮度信息包含在Y参数中，而色度信息（色度和饱和度）则结合在I和Q参数中。</p>
+<h3 id="3-cmyk"><a class="markdownIt-Anchor" href="#3-cmyk"></a> 3、CMYK</h3>
+<p>视频监视器通过组合屏幕磷粉发射的光生成颜色，是一种加色处理。而打印机、绘图仪之类的硬拷贝设备通过往纸上涂颜料来生成彩色图片。我们通过反射光看见颜色，是一种减色处理。</p>
+<p>CMYK颜色使用青、品红、黄色作为基色（CMY），但是在实际使用中青色、品红色和黄色墨水的混合通常生成深灰色而不是黑色，所以把黑色（K）加上。通过混合三基色的颜料生成各种彩色，对于灰度图只使用黑色颜料就可以了。</p>
+<img src="https://i.loli.net/2018/07/09/5b437736822fc.png" width="35%" height="35%">
+<h3 id="4-hsv和hsl"><a class="markdownIt-Anchor" href="#4-hsv和hsl"></a> 4、HSV和HSL</h3>
+<p>HSV和HSL的颜色模型很相近，对用户来说，比RGB模型表示颜色更加直观。</p>
+<p>两种模型中H表示色相(Hue)。该值的取值范围是[0， 360]。以60°为间隔，分别对应红、黄、绿、青、蓝、品红，构成了一个首尾相接的色环。S都表示饱和度，表示颜色的纯度。</p>
+<p>两种颜色模型不同的是最后一个分量。<br>
+HSV中的V表示明度（Value/Brightness），HSL中的L表示亮度（Lightness）。明度是从黑色到色相颜色的程度，亮度是从最暗到色相颜色再到白色。也就是说HSL模型取最大亮度时不管饱和度和色相如何都是白色，而HSB最大明度时是色相颜色，要达到白色还需要饱和度最小。</p>
+<img src="https://i.loli.net/2018/07/09/5b437d1755ea3.png" width="35%" height="35%">
+<img src="https://i.loli.net/2018/07/09/5b437d1752fa9.png" width="35%" height="35%">
+<p>详细信息参考Wiki：<a href="https://en.wikipedia.org/wiki/HSL_and_HSV" target="_blank" rel="noopener">HSV和HSL</a></p>
+<h2 id="三-色彩空间"><a class="markdownIt-Anchor" href="#三-色彩空间"></a> 三、色彩空间</h2>
+<p>不同颜色模型下有一种或者多种色彩空间，在这里只介绍渲染相关的几个色彩空间。</p>
+<p>各种设备使用的色彩空间不尽相同，高端显示器会使用Adobe RGB色彩空间，低端显示器由于显示不出那么多Adobe RGB空间的颜色，会优先使用色域较小的sRGB色彩空间。在不同设备上使用的色彩空间是设备相关的色彩空间。</p>
+<p>设备相关的色彩空间给颜色的管理造成了很大的麻烦，因为一个色彩空间的颜色值，在另外一个色彩空间很可能是不同的，甚至是不存在的。所以将一个将各种设备相关的色彩空间的颜色都映射到一个标准的色彩空间，作为各种色彩空间转换的桥梁。这就是设备无关的色彩空间，最常见的就是CIE xyY。</p>
+<h3 id="1-cie标准色彩空间"><a class="markdownIt-Anchor" href="#1-cie标准色彩空间"></a> 1、CIE标准色彩空间</h3>
+<h4 id="cie-1931-rgb"><a class="markdownIt-Anchor" href="#cie-1931-rgb"></a> CIE 1931 RGB</h4>
+<p>在实际的基本颜色中，没有哪一组基色组合能够组合生成所有可见的颜色。三种基色对大多数情况来说是足够的，并且可以通过混色处理表现为任意第四种颜色。将一种或两种基色与第四种颜色混合，产生的颜色可以与余下基色的混色色相匹配。</p>
+<p>科学家经过大量的实验，将三基色）用不同的量混合，得出所有的光谱色。最终的得到的结果成为色匹配函数，如下：</p>
+<img src="https://i.loli.net/2018/07/08/5b42263f46e24.png" width="50%" height="50%">
+<p>波长为500nm左右的光谱的颜色，无法用三原色调节的出来，但是可以通过在光谱色中加入基色光，然后再让三原色经过一定的比例的混合与之相匹配。那么得出的色匹配值就是三原色基色匹配减去在光谱色中加入的基色。500nm左右的颜色与一定量的红光混合可以得到下图中的蓝绿混合色，所以500nm的颜色只能与蓝光和绿光混合的广中“减去”红光而得到的色相匹配。这就是图像是出现负值的原因。对RGB显示器来说，不能显示500nm左右的颜色。</p>
+<p>可以看到CIE RGB色彩空间的rg色度图横轴负半轴都是含负值的区域。</p>
+<img src="https://i.loli.net/2018/07/10/5b44cedd31240.png" width="40%" height="40%">
+<h4 id="cie-1931-xyz"><a class="markdownIt-Anchor" href="#cie-1931-xyz"></a> CIE 1931 XYZ</h4>
+<p>由于CIE RGB色彩空间的色匹配函数出现了负值，使用和计算都不方便。CIE对上面的色匹配函数进行了线性变换，使所有分量都为正值，这就是CIE XYZ颜色模型。</p>
+<img src="https://i.loli.net/2018/07/08/5b422a1623546.png" width="50%" height="50%">
+<p>对CIE再进行一次数学变化，把色相分布用xy平面表示出来，Y轴表示亮度，这样可以更直观的看到色彩的分布,即得到CIE xyY空间。其色度图如下：</p>
+<img src="https://i.loli.net/2018/07/10/5b44d291c73c1.png" width="50%" height="50%">
+<p>CIE xyY是设备无关的色彩空间，包含了一般人可见的所有颜色。色度图的马蹄形弧线边界是光谱色。连接红色和紫色的直线成为紫色线，并不属于光谱。内部的点表示所有可能的可见颜色的组合，所以一般情况下都能包含其他色彩空间。因此作为国际上色度计算、颜色测量和颜色表征的统一标准，是几乎所有测色仪器的设计与制造依据。</p>
+<h3 id="2-rgb模型的色彩空间"><a class="markdownIt-Anchor" href="#2-rgb模型的色彩空间"></a> 2、RGB模型的色彩空间</h3>
+<p>常见的RGB色彩空间有sRGB，Adobe RGB。</p>
+<h4 id="srgb"><a class="markdownIt-Anchor" href="#srgb"></a> sRGB</h4>
+<p>sRGB是微软和惠普联合指定的色彩空间标准，为了适应更多的设备，它的色域范围非常小，在常用的色彩空间里最小。在PhotoShop绘图时，默认选择的是sRGB色彩空间，该色域可以在大多数的设备上完整的呈现出来。其色度图如下：</p>
+<img src="https://i.loli.net/2018/07/11/5b462742d428e.png" width="50%" height="50%">
+<h4 id="adobe-rgb"><a class="markdownIt-Anchor" href="#adobe-rgb"></a> Adobe RGB</h4>
+<p>有Adobe公司开发的色彩空间标准。是为了尽可能在CMYK彩色印刷中利用计算机显示器等设备的RGB颜色模式上囊括更多的颜色。通常在高端显示器中使用，比sRGB的色域大很多，并且完全覆盖sRGB色域。</p>
+<img src="https://i.loli.net/2018/07/11/5b4627dc9843a.png" width="50%" height="50%">
+<p>Pro Photo RGB，它是一种色域非常广的色彩空间，比Adobe RGB大很多，能最大限度的保留信息，非常适用于处理数码相机生成的原始数据文件。</p>
+<p>ColorMatch RGB包含了CMYK打印色域,在早期的苹果机印前领域中用得较多。可作为Adobe RGB的替代色域。</p>
+<p>常用的这些色彩空间在画在CIE xyY色度图上，可以比较清楚的看出来色域的区别。</p>
+<img src="https://i.loli.net/2018/07/12/5b462b648f74c.png" width="50%" height="50%">
+<h3 id="参考"><a class="markdownIt-Anchor" href="#参考"></a> 参考：</h3>
+<ol>
+<li><a href="https://en.wikipedia.org/wiki/CIE_1931_color_space" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/CIE_1931_color_space</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/24214731" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/24214731</a></li>
+<li><a href="http://styletin.com/archives/535" target="_blank" rel="noopener">http://styletin.com/archives/535</a></li>
+<li><a href="https://www.jianshu.com/p/f03e9ac9c9ef" target="_blank" rel="noopener">https://www.jianshu.com/p/f03e9ac9c9ef</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/06/25/Lua/Lua%E7%B1%BB%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/" rel="prev" title="Lua类的实现思路">
+      <i class="fa fa-chevron-left"></i> Lua类的实现思路
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/07/19/%E6%B8%B2%E6%9F%93/Gamma%E6%A0%A1%E6%AD%A3/" rel="next" title="Gamma校正">
+      Gamma校正 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    
+  
+  <div class="comments">
+  <script src="https://utteranc.es/client.js" repo="silence394/silence394.github.io" issue-term="pathname" theme="github-light" crossorigin="anonymous" async=""></script>
+  </div>
+  
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一-颜色是什么"><span class="nav-number">1.</span> <span class="nav-text"> 一、 颜色是什么？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-光的属性"><span class="nav-number">1.1.</span> <span class="nav-text"> 1、光的属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-人眼的感觉"><span class="nav-number">1.2.</span> <span class="nav-text"> 2、人眼的感觉</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二-颜色模型"><span class="nav-number">2.</span> <span class="nav-text"> 二、颜色模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-rgb"><span class="nav-number">2.1.</span> <span class="nav-text"> 1、RGB</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-yiq"><span class="nav-number">2.2.</span> <span class="nav-text"> 2、YIQ</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-cmyk"><span class="nav-number">2.3.</span> <span class="nav-text"> 3、CMYK</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-hsv和hsl"><span class="nav-number">2.4.</span> <span class="nav-text"> 4、HSV和HSL</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三-色彩空间"><span class="nav-number">3.</span> <span class="nav-text"> 三、色彩空间</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-cie标准色彩空间"><span class="nav-number">3.1.</span> <span class="nav-text"> 1、CIE标准色彩空间</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#cie-1931-rgb"><span class="nav-number">3.1.1.</span> <span class="nav-text"> CIE 1931 RGB</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#cie-1931-xyz"><span class="nav-number">3.1.2.</span> <span class="nav-text"> CIE 1931 XYZ</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-rgb模型的色彩空间"><span class="nav-number">3.2.</span> <span class="nav-text"> 2、RGB模型的色彩空间</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#srgb"><span class="nav-number">3.2.1.</span> <span class="nav-text"> sRGB</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#adobe-rgb"><span class="nav-number">3.2.2.</span> <span class="nav-text"> Adobe RGB</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-number">3.3.</span> <span class="nav-text"> 参考：</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">silence394</p>
+  <div class="site-description" itemprop="description">认识自我、认识世界</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/silence394" title="GitHub → https://github.com/silence394" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">silence394</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">103k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:33</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async="" src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+
+<script src="/bundle.js"></script></body></html>
