@@ -1,6 +1,7 @@
 ---
 title: 移动GPU主流架构
 categories: 性能
+date: 2018-07-25
 ---
 
 在TBR GPU上，将像素重新写到memorybuffer上的操作可以省略，但是shadering 还是要执行。

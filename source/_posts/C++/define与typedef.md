@@ -1,6 +1,7 @@
 ---
 title: define与typedef
 categories: C++
+date: 2018-06-01
 ---
 
 在C++语言中，define和typedef虽然有相似的地方，但是有着各自的用途，做一下简单的总结。

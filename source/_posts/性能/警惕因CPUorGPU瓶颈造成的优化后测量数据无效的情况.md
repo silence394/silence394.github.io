@@ -1,6 +1,7 @@
 ---
 title: 警惕因CPUorGPU瓶颈造成的优化后测量数据无效的情况
 categories: 性能
+date: 2019-09-22
 ---
 ### 一、三缓冲条件下CPU和GPU的工作模式
 参考[Metal的三缓冲机制](https://silence394.github.io/2018/08/01/Metal%E7%9A%84%E4%B8%89%E9%87%8D%E7%BC%93%E5%86%B2%E6%9C%BA%E5%88%B6/)，可以认识到：CPU与GPU是并行的工作状态，可以创建多重缓冲让CPU与GPU之间有更好的并发性。

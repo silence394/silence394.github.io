@@ -1,6 +1,7 @@
 ---
 title: Lua类的实现思路
 categories: Lua
+date: 2018-06-25
 ---
 
 复习下lua的元表元方法，浅尝辄止。

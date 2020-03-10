@@ -1,6 +1,7 @@
 ---
 title: AlphaBlend与AlphaTest
 categories: 渲染
+date: 2019-01-09
 ---
 ### AlphaBlend和AlphaTest是什么
 - AlphaBlend：关闭DepthWrite，需要保证先绘制不透明物体，并对AlphaBlend的物体按照深度排序再绘制。对半透明的片元相互穿插的问题，没有一个完美的解决方案。可以拆分网格或者画两次AlphaBlend的网格，第一次开启深度写入并写入深度，第二次做正常的AlphaBlend，能够实现半透的效果。

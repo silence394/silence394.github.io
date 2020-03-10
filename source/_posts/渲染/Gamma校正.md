@@ -1,6 +1,7 @@
 ---
 title: Gamma校正
 categories: 渲染
+date: 2018-07-19
 ---
 
 ### 一、Gamma的由来
