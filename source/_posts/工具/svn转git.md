@@ -3,9 +3,9 @@ title: SVN转Git
 categories: 工具
 date: 2020-04-22
 ---
-工作中的版本控制系统一直用的是SVN，习惯了SVN的工作流。但保持SVN的使用思路用git非常的别扭。所以用git模拟一些使用场景，了解git的使用思想。
+工作中的版本控制系统一直用的是SVN，习惯了SVN的工作流。但保持SVN的使用思路用Git非常的别扭。所以用Git模拟一些使用场景，了解Git的使用方法和思想。
 
-完成以下内容：
+尝试用Git完成以下内容：
 1. 创建文件
 2. 改动文件
 3. 提交改动到暂存区
@@ -26,15 +26,35 @@ date: 2020-04-22
 #### Git与SVN的差异
 Git是分布式版本控制系统，SVN是集中式式分布系统。
 
-集中式版本控制系统的版本库是放在中央服务器的，干活的时候用的是自己电脑，需要先从中央服务器获得最新的版本，才能开始干活，当活干完了，再把活推送给中央服务器。有一个很大的弊病，自己无法在本地创建分支，分支的信息必须要存在于中央服务器上。对工作量不大不小的工作，如果在中央服务器创建分支是不值当的，但是不创建分支又无法进行版本控制，非常糟心。
+集中式版本控制系统的版本库是放在中央服务器的，干活的时候用的是自己电脑，需要先从中央服务器获得最新的版本，才能开始干活，当活干完了，再把工作内容推送给中央服务器。有一个很大的弊病，自己无法在本地创建分支，分支的信息必须要存在于中央服务器上。对工作量不大不小的工作，在中央服务器创建分支是不值当的，但是不创建分支又无法进行版本控制，非常糟心。
 ![l](https://raw.githubusercontent.com/silence394/PicBed/PicGO/l.jpg)
 
 而分布式管理系统是不需要中央服务器的，本地就是一个完整的版本库。那么在不联网的时候，也能进行版本控制。相反，集中式版本控制是无法在不联网/本地环境下进行版本控制的。在分布式管理系统下，只需要把改动互相推送，就可以看到彼此的改动了。但是直接推送给别人还是不方便的。所以在分布式统计系统里也有一台充当中央服务器角色的机器，只不过它的作用仅仅是交换大家的修改，没有它一样能正常工作。
 ![git](https://raw.githubusercontent.com/silence394/PicBed/PicGO/git.jpg)
 #### Git中的关键概念
+Git的本地工作环境结构是这样的：
+![0](https://raw.githubusercontent.com/silence394/PicBed/PicGO/0.jpg)
+- 工作区就是本机的工作目录。
+- 版本库中的stage，即暂存区，存放的是我们add进来的内容。
+- 版本库中默认的master分支，存放的是我们commit的内容。
+- HEAD表示当前版本，上一个版本是HEAD^ ，上上个版本是HEAD^^ ，再网上100个版本是100个^ ，可以写成HEAD~100。
+
+接下来了解下Git分支的概念。
+当只有默认创建的master分支的时候，master分支是一条线，master指向最新的提交，HEAD指向master，每次提交master分支都会向前移动一步。
+![0](https://raw.githubusercontent.com/silence394/PicBed/PicGO/0.png)
+当我们创建并切换新分支dev时，Git新建了一个dev的指针，指向master相同的提交，并把HEAD指针指向了dev，表示当前分支为dev。
+![l](https://raw.githubusercontent.com/silence394/PicBed/PicGO/l.png)
+在dev分支上提交内容，dev分支后向前移动，而master分支不变。
+![l (1)](https://raw.githubusercontent.com/silence394/PicBed/PicGO/l%20(1).png)
+这时候切回master分支，可以看到提交在dev分支上，master不变，HEAD指向master。
+![0 (3)](https://raw.githubusercontent.com/silence394/PicBed/PicGO/0%20(3).png)
+当dev分支的内容开发完毕，把dev合并到master分支上，Git直接把master指向了dev的当前提交，完成了合并。
+![0 (1)](https://raw.githubusercontent.com/silence394/PicBed/PicGO/0%20(1).png)
+当把dev分支删除后，就只剩下master分支了。
+![0 (2)](https://raw.githubusercontent.com/silence394/PicBed/PicGO/0%20(2).png)
 ### 二、实际操作
 #### 创建、修改、回退、提交主分支
-初始化git
+初始化Git
 ```
 git init
 ```
@@ -80,7 +100,7 @@ index cc583c4..e7fce33 100644
 ```
 然后提交到仓库
 ```
-git add c++.txt
+$ git add c++.txt
 $ git commit -m "add 222222222 to c++.txt"
 [master 55c656f] add 222222222 to c++.txt
  1 file changed, 1 insertion(+)
@@ -88,7 +108,7 @@ $ git commit -m "add 222222222 to c++.txt"
 在c++.txt中添加333333333，然后不想要这个改动，想把它撤销，需要分两种情况。
 一种是没有添加到暂存区的。
 ```
-git checkout -- c++.txt
+$ git checkout -- c++.txt
 ```
 可以看到被恢复到了版本库的状态。
 ```
@@ -96,7 +116,7 @@ $ cat c++.txt
 11111111111111111
 22222222222222222
 ```
-另外一种是已经增加到暂存区里了，那么执行
+另外一种是已经增加到暂存区里了，那么执行checkout之后仍是暂存区的状态
 ```
 git checkout -- c++.txt
 
@@ -106,8 +126,8 @@ $ cat c++.txt
 33333333333333333
 
 ```
-可以看到还是暂存区的状态。
-把改动commit到版本库之后，在c++.txt加了“44444444444”，并提交到了暂存区。但是改动有问题，需要把它从暂存区里移出来：
+
+这时候可以把它从暂存区里移出来，然后执行checkout即可。
 ```
 $ git reset HEAD c++.txt
 Unstaged changes after reset:
@@ -155,7 +175,7 @@ HEAD is now at 55c656f add 222222222 to c++.txt
 $ git reset --hard HEAD^
 HEAD is now at 55c656f add 222222222 to c++.txt
 ```
-上一个版本是HEAD^，上上个版本是HEAD^^，往前的100个版本是HEAD~100.
+上一个版本是HEAD^ ，上上个版本是HEAD^^ ，往前的100个版本是HEAD~100.
 最后发现弄错了，想要把它找回来，执行reflog可以看到之前的提交记录。
 ```
 $ git reflog
@@ -165,16 +185,15 @@ $ git reflog
 55c656f (HEAD -> master) HEAD@{3}: commit: add 222222222 to c++.txt
 27cb805 HEAD@{4}: commit (initial): add c++.txt
 ```
-再执行reset命令，回到4dec294 HEAD@{2}: commit: add 333333333333这个版本
+再执行reset命令，回到4dec294 HEAD@{2}: commit: add 333333333333这个版本。
 ```
 $ git reset --hard 4dec
 HEAD is now at 4dec294 add 333333333333
 ```
-好了这次功能已经完成了。要把本地库推送到github远程仓库中。先与github仓库关联：
+在dev上开发的功能已经完成了，现在要把本地库推送到github远程仓库中。先与github仓库关联：
 ```
 git remote add origin https://github.com/silence394/LearnGit.git
 ```
-
 由于在创建github仓库的时候添加了readme.md，所以在push之前，需要pull一下，并用命令“--allow-unrelated-histories”将本地和远程关联起来。
 ```
 git pull origin master --allow-unrelated-histories
@@ -239,7 +258,7 @@ $ git branch -r
   origin/dev
   origin/master
 ```
-创建并切换到origin/dev分支
+创建并切换到origin/dev分支。
 ```
 $ git checkout -t origin/dev
 Switched to a new branch 'dev'
@@ -263,7 +282,7 @@ Auto-merging c++.txt
 CONFLICT (content): Merge conflict in c++.txt
 Automatic merge failed; fix conflicts and then commit the result.
 ```
-c++.txt中是这样的：
+c++.txt中是这样的，
 ```
 11111111111111111
 22222222222222222
@@ -308,8 +327,7 @@ To https://github.com/silence394/LearnGit.git
    feaccb7..88760f5  master -> master
 ```
 
-现在切回到dev分支，将开发个新功能lua.txt。提交到本地dev分支和远程dev分支。
-对lua.txt改动三次，分别提交。
+现在切回到dev分支，将开发个新功能lua.txt。提交到本地dev分支和远程dev分支。对lua.txt改动三次，分别提交。
 但是我们发现中间那次对lua的改动，是有问题的，需要将其撤销。
 ```
 $ git revert 6615
@@ -337,6 +355,8 @@ $ git cherry-pick ed00496c9410f9714462e3ade8186c2148d874cd
 
 到这个版本功能已经开发并测试完毕，可以发布了。对这个版本打个tag——release1.0，那样，就可以直接通过这个tag而不是一串字符串版本了。把tag推送到远程分支。
 ```
+$ git tag release1.0
+
 $ git push origin release1.0
 Total 0 (delta 0), reused 0 (delta 0)
 To https://github.com/silence394/LearnGit.git
