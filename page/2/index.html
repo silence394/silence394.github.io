@@ -180,6 +180,314 @@
   
   
   <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/09/%E6%B8%B2%E6%9F%93/AlphaBlend%E4%B8%8EAlphaTest/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/01/09/%E6%B8%B2%E6%9F%93/AlphaBlend%E4%B8%8EAlphaTest/" class="post-title-link" itemprop="url">AlphaBlend与AlphaTest</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-01-09 00:00:00" itemprop="dateCreated datePublished" datetime="2019-01-09T00:00:00+08:00">2019-01-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:26:10" itemprop="dateModified" datetime="2020-03-10T10:26:10+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B8%B2%E6%9F%93/" itemprop="url" rel="index">
+                    <span itemprop="name">渲染</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>771</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="alphablend和alphatest是什么"><a class="markdownIt-Anchor" href="#alphablend和alphatest是什么"></a> AlphaBlend和AlphaTest是什么</h3>
+<ul>
+<li>AlphaBlend：关闭DepthWrite，需要保证先绘制不透明物体，并对AlphaBlend的物体按照深度排序再绘制。对半透明的片元相互穿插的问题，没有一个完美的解决方案。可以拆分网格或者画两次AlphaBlend的网格，第一次开启深度写入并写入深度，第二次做正常的AlphaBlend，能够实现半透的效果。</li>
+<li>AlphaTest:在PixelShader里判断是否要discard当前的fragment。如果被discard就会舍弃当的像素；否则按照正常的方式处理颜色和深度。不会有半透明的效果，只有透或者不透。</li>
+</ul>
+<h3 id="效率比较"><a class="markdownIt-Anchor" href="#效率比较"></a> 效率比较</h3>
+<p>在一个平视角，满屏草的场景下，对OppoR9S手机测试，AlphaBlend(20ms)比AlphaTest(30ms)快1/3左右。但很多人给出AlphaBlend比AlphaTest慢的数据，可能跟大家测试的环境、手机、引擎等有很大关系。不过大家都认可的意见是以数据说话，通过测试来得到结论。</p>
+<h3 id="引用"><a class="markdownIt-Anchor" href="#引用"></a> 引用</h3>
+<ol>
+<li><a href="https://blog.csdn.net/candycat1992/article/details/41599167" target="_blank" rel="noopener">https://blog.csdn.net/candycat1992/article/details/41599167</a></li>
+<li><a href="https://answer.uwa4d.com/question/59c09367a3d42c411c37a0cd/" target="_blank" rel="noopener">https://answer.uwa4d.com/question/59c09367a3d42c411c37a0cd/</a></li>
+<li><a href="https://www.zhihu.com/question/27875435" target="_blank" rel="noopener">https://www.zhihu.com/question/27875435</a></li>
+<li>PowerVR 的资料。</li>
+<li><a href="https://zhuanlan.zhihu.com/p/33127345" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/33127345</a></li>
+<li><a href="https://www.zhihu.com/question/29904258" target="_blank" rel="noopener">https://www.zhihu.com/question/29904258</a></li>
+<li><a href="https://blog.csdn.net/leonwei/article/details/79298381" target="_blank" rel="noopener">https://blog.csdn.net/leonwei/article/details/79298381</a></li>
+<li><a href="http://gad.qq.com/article/detail/15884" target="_blank" rel="noopener">http://gad.qq.com/article/detail/15884</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/%E6%B8%B2%E6%9F%93/%E5%9F%BA%E4%BA%8E%E7%89%A9%E7%90%86%E7%9A%84%E6%B8%B2%E6%9F%93%E2%80%94%E2%80%94%E7%9B%B4%E6%8E%A5%E5%85%89%E7%85%A7/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/12/20/%E6%B8%B2%E6%9F%93/%E5%9F%BA%E4%BA%8E%E7%89%A9%E7%90%86%E7%9A%84%E6%B8%B2%E6%9F%93%E2%80%94%E2%80%94%E7%9B%B4%E6%8E%A5%E5%85%89%E7%85%A7/" class="post-title-link" itemprop="url">基于物理的渲染——直接光照</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-12-20 00:00:00" itemprop="dateCreated datePublished" datetime="2018-12-20T00:00:00+08:00">2018-12-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:30:11" itemprop="dateModified" datetime="2020-03-10T10:30:11+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B8%B2%E6%9F%93/" itemprop="url" rel="index">
+                    <span itemprop="name">渲染</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>上篇文章的最后引入了PBR的渲染方程：</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>L</mi><mi>o</mi></msub><mo>=</mo><msub><mo>∫</mo><mi mathvariant="normal">Ω</mi></msub><mo stretchy="false">(</mo><mfrac><msub><mi>c</mi><mrow><mi>d</mi><mi>i</mi><mi>f</mi><mi>f</mi></mrow></msub><mi>π</mi></mfrac><mo>+</mo><mfrac><mrow><mi>D</mi><mo stretchy="false">(</mo><mi>h</mi><mo stretchy="false">)</mo><mi>G</mi><mo stretchy="false">(</mo><msub><mi>ω</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>ω</mi><mi>o</mi></msub><mo separator="true">,</mo><mi>h</mi><mo stretchy="false">)</mo><mi>F</mi><mo stretchy="false">(</mo><msub><mi>ω</mi><mi>o</mi></msub><mo separator="true">,</mo><mi>h</mi><mo stretchy="false">)</mo></mrow><mrow><mn>4</mn><mo stretchy="false">(</mo><mi>n</mi><mo>⋅</mo><msub><mi>ω</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>n</mi><mo>⋅</mo><msub><mi>ω</mi><mi>o</mi></msub><mo stretchy="false">)</mo></mrow></mfrac><mo stretchy="false">)</mo><mo>⊗</mo><msub><mi>L</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>ω</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mi>cos</mi><mo>⁡</mo><msub><mi>θ</mi><mi>i</mi></msub><mi>d</mi><msub><mi>ω</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">L_o = \int_{\Omega }(\frac{c_{diff}}{π}+ \frac{D(h)G(\omega_i, \omega_o,h)F(\omega_o,h)}{4(n\cdot \omega_i)(n\cdot \omega_o)})\otimes L_i(\omega_i)\cos\theta_id\omega_i
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">o</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.27195em;vertical-align:-0.9119499999999999em;"></span><span class="mop"><span class="mop op-symbol large-op" style="margin-right:0.44445em;position:relative;top:-0.0011249999999999316em;">∫</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:-0.433619em;"><span style="top:-1.7880500000000001em;margin-left:-0.44445em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">Ω</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9119499999999999em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1075599999999999em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">d</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">4</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">o</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathdefault">h</span><span class="mclose">)</span><span class="mord mathdefault">G</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">o</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">h</span><span class="mclose">)</span><span class="mord mathdefault" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">o</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">h</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⊗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathdefault">d</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>
+<p>在这篇文章里将介绍PBR在方向光源下的着色模型。由于是方向光源，物体表面的每一点只会被一束光照到，所以方向光源的渲染方程可以写成：</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>L</mi><mi>o</mi></msub><mo>=</mo><mo stretchy="false">(</mo><mfrac><msub><mi>c</mi><mrow><mi>d</mi><mi>i</mi><mi>f</mi><mi>f</mi></mrow></msub><mi>π</mi></mfrac><mo>+</mo><mfrac><mrow><mi>D</mi><mo stretchy="false">(</mo><mi>h</mi><mo stretchy="false">)</mo><mi>G</mi><mo stretchy="false">(</mo><msub><mi>ω</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>ω</mi><mi>o</mi></msub><mo separator="true">,</mo><mi>h</mi><mo stretchy="false">)</mo><mi>F</mi><mo stretchy="false">(</mo><msub><mi>ω</mi><mi>o</mi></msub><mo separator="true">,</mo><mi>h</mi><mo stretchy="false">)</mo></mrow><mrow><mn>4</mn><mo stretchy="false">(</mo><mi>n</mi><mo>⋅</mo><msub><mi>ω</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>n</mi><mo>⋅</mo><msub><mi>ω</mi><mi>o</mi></msub><mo stretchy="false">)</mo></mrow></mfrac><mo stretchy="false">)</mo><mo>⊗</mo><msub><mi>L</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>ω</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mi>cos</mi><mo>⁡</mo><msub><mi>θ</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">L_o = (\frac{c_{diff}}{π}+ \frac{D(h)G(\omega_i, \omega_o,h)F(\omega_o,h)}{4(n\cdot \omega_i)(n\cdot \omega_o)})\otimes L_i(\omega_i)\cos\theta_i
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">o</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.7935599999999998em;vertical-align:-0.686em;"></span><span class="mopen">(</span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1075599999999999em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">π</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361079999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">d</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">4</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">o</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">D</span><span class="mopen">(</span><span class="mord mathdefault">h</span><span class="mclose">)</span><span class="mord mathdefault">G</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">o</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">h</span><span class="mclose">)</span><span class="mord mathdefault" style="margin-right:0.13889em;">F</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">o</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">h</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⊗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>
+<p>其中<span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>L</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">L_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>可以用光的颜色表示，我们只需要求出漫反射部分<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mfrac><msub><mi>c</mi><mrow><mi>d</mi><mi>i</mi><mi>f</mi><mi>f</mi></mrow></msub><mi>π</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{c_{diff}}{π}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1594719999999998em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8144719999999999em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">π</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.51308em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3487714285714287em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">d</span><span class="mord mathdefault mtight">i</span><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.29011428571428566em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>和高光反射部分<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mfrac><mrow><mi>D</mi><mo stretchy="false">(</mo><mi>h</mi><mo stretchy="false">)</mo><mi>G</mi><mo stretchy="false">(</mo><msub><mi>ω</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>ω</mi><mi>o</mi></msub><mo separator="true">,</mo><mi>h</mi><mo stretchy="false">)</mo><mi>F</mi><mo stretchy="false">(</mo><msub><mi>ω</mi><mi>o</mi></msub><mo separator="true">,</mo><mi>h</mi><mo stretchy="false">)</mo></mrow><mrow><mn>4</mn><mo stretchy="false">(</mo><mi>n</mi><mo>⋅</mo><msub><mi>ω</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>n</mi><mo>⋅</mo><msub><mi>ω</mi><mi>o</mi></msub><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{D(h)G(\omega_i, \omega_o,h)F(\omega_o,h)}{4(n\cdot \omega_i)(n\cdot \omega_o)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.53em;vertical-align:-0.52em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.01em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">4</span><span class="mopen mtight">(</span><span class="mord mathdefault mtight">n</span><span class="mbin mtight">⋅</span><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3280857142857143em;"><span style="top:-2.357em;margin-left:-0.03588em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mclose mtight">)</span><span class="mopen mtight">(</span><span class="mord mathdefault mtight">n</span><span class="mbin mtight">⋅</span><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.16454285714285719em;"><span style="top:-2.357em;margin-left:-0.03588em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight">o</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.02778em;">D</span><span class="mopen mtight">(</span><span class="mord mathdefault mtight">h</span><span class="mclose mtight">)</span><span class="mord mathdefault mtight">G</span><span class="mopen mtight">(</span><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3280857142857143em;"><span style="top:-2.357em;margin-left:-0.03588em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.16454285714285719em;"><span style="top:-2.357em;margin-left:-0.03588em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight">o</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mathdefault mtight">h</span><span class="mclose mtight">)</span><span class="mord mathdefault mtight" style="margin-right:0.13889em;">F</span><span class="mopen mtight">(</span><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.16454285714285719em;"><span style="top:-2.357em;margin-left:-0.03588em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight">o</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mathdefault mtight">h</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.52em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>即可。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/12/20/%E6%B8%B2%E6%9F%93/%E5%9F%BA%E4%BA%8E%E7%89%A9%E7%90%86%E7%9A%84%E6%B8%B2%E6%9F%93%E2%80%94%E2%80%94%E7%9B%B4%E6%8E%A5%E5%85%89%E7%85%A7/#more" rel="contents">
+                阅读全文 »
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/%E6%B8%B2%E6%9F%93/%E5%9F%BA%E4%BA%8E%E7%89%A9%E7%90%86%E7%9A%84%E6%B8%B2%E6%9F%93%E2%80%94%E2%80%94%E5%8E%9F%E7%90%86/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/12/20/%E6%B8%B2%E6%9F%93/%E5%9F%BA%E4%BA%8E%E7%89%A9%E7%90%86%E7%9A%84%E6%B8%B2%E6%9F%93%E2%80%94%E2%80%94%E5%8E%9F%E7%90%86/" class="post-title-link" itemprop="url">基于物理的渲染——理论基础</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-12-20 00:00:00" itemprop="dateCreated datePublished" datetime="2018-12-20T00:00:00+08:00">2018-12-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:30:11" itemprop="dateModified" datetime="2020-03-10T10:30:11+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B8%B2%E6%9F%93/" itemprop="url" rel="index">
+                    <span itemprop="name">渲染</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>物理的渲染（Physically Basic Rendering），简称PBR，是一种相对遵循现实世界的物理规律的渲染方式。相对与传统光照模型Blinn-Phong光照模型，PBR看起来更加真实。美术设计师可以根据物理参数来制作材质，使材质在不同的环境下都保持一致的物理表现，而不是像以前以经验调节一个较好的效果，当换了一个环境之后，很容易表现不出制作时想要表达的材质。</p>
+<p>先回顾一下传统光照模型，然后引入PBR光照模型。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/12/20/%E6%B8%B2%E6%9F%93/%E5%9F%BA%E4%BA%8E%E7%89%A9%E7%90%86%E7%9A%84%E6%B8%B2%E6%9F%93%E2%80%94%E2%80%94%E5%8E%9F%E7%90%86/#more" rel="contents">
+                阅读全文 »
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/%E6%B8%B2%E6%9F%93/%E5%9F%BA%E4%BA%8E%E7%89%A9%E7%90%86%E7%9A%84%E6%B8%B2%E6%9F%93%E2%80%94%E2%80%94%E9%97%B4%E6%8E%A5%E5%85%89%E7%85%A7/">
 
     <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -979,393 +1287,6 @@ Z
   
   
 
-        
-  
-  
-  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/01/%E6%80%A7%E8%83%BD/Metal%E7%9A%84%E4%B8%89%E9%87%8D%E7%BC%93%E5%86%B2%E6%9C%BA%E5%88%B6/">
-
-    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="silence394">
-      <meta itemprop="description" content="认识自我、认识世界">
-    </span>
-
-    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="知行合一">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/08/01/%E6%80%A7%E8%83%BD/Metal%E7%9A%84%E4%B8%89%E9%87%8D%E7%BC%93%E5%86%B2%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">Metal的三重缓冲机制</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-08-01 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-01T00:00:00+08:00">2018-08-01</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-03-10 10:22:29" itemprop="dateModified" datetime="2020-03-10T10:22:29+08:00">2020-03-10</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%80%A7%E8%83%BD/" itemprop="url" rel="index">
-                    <span itemprop="name">性能</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>4.7k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 ≈</span>
-              <span>4 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="一-多重缓冲"><a class="markdownIt-Anchor" href="#一-多重缓冲"></a> 一、多重缓冲</h2>
-<p>CPU和GPU是并行工作的，CPU提交命令，GPU处理命令。当二者的任务处理完成，每帧的工作也就完成了。以下面的渲染流程为例，介绍多重缓冲的概念。</p>
-<p>CPU更新VertexBuffer，GPU读取VertexBuffer绘制。以此为例来说明，CPU和GPU的工作流程。</p>
-<ol>
-<li>每帧开始</li>
-<li>CPU更新VertexBuffer</li>
-<li>CPU提交渲染命令</li>
-<li>GPU执行渲染命令</li>
-<li>GPU读取VertexBuffer</li>
-<li>GPU绘制像素到屏幕</li>
-<li>完成绘制</li>
-</ol>
-<h3 id="1-cpu与gpu并行"><a class="markdownIt-Anchor" href="#1-cpu与gpu并行"></a> 1、CPU与GPU并行</h3>
-<p>当CPU和GPU只拥有一份VertexBuffer的时候，CPU和GPU为避免存取冲突，必须要等待VertexBuffer没有引用时才能对其操作。很明显这种方案的效率是及其低下的。</p>
-<p><img src="https://docs-assets.developer.apple.com/published/d9dc44d823/77a3d759-a808-4e69-81f1-3bb2fa24e545.png" alt="image"></p>
-<p>而为了最大化的利用CPU和GPU的并行性，CPU和GPU需要处于持续工作的状态。理想情况下，GPU在处理第一帧的绘制工作，CPU已经在处理渲染命令的组织了。在此种情况下仍然只有一种VertexBuffer的情况下，CPU Frame2更新VertexBuffer，比GPU Frame1里读取VertexBuffer要早的情况下，会出现错误的绘制结果。</p>
-<p><img src="https://docs-assets.developer.apple.com/published/9ffae9d282/4add8abb-f845-4ae6-80c1-818cba38f4e4.png" alt="image"></p>
-<p>为了解决以上的处理器空闲和对Buffer存取的冲突，可以创建多份VertexBuffer供CPU和GPU使用，也就是多重缓冲。CPU和GPU依次处理第1帧的VertexBuffer 1，第2帧的VertexBuffer 2，第3帧的VertexBuffer 3，以此类推。在这种结构下，CPU和GPU可以无等待的存取VertexBuffer，最大化的利用CPU和GPU的并发性。</p>
-<p><img src="https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/Art/ResourceManagement_TripleBuffering_2x.png" alt="image"></p>
-<h3 id="2-多重缓冲"><a class="markdownIt-Anchor" href="#2-多重缓冲"></a> 2、多重缓冲</h3>
-<p>假设CPU提交命令消耗的时间是GPU处理命令所花费的时间的3/4，Buffer的数量无限制，不会发生资源存取冲突的情况，如果按照最简单的CPU和GPU不用等待、并行执行，会导致CPU与GPU之间的执行延时越来越大，即延迟越来越高。</p>
-<p><img src="https://i.loli.net/2018/08/02/5b6314eb98ddc.jpg" alt="image"></p>
-<p>所以为了避免CPU与GPU的延迟越来越大，需要让CPU等待GPU的执行完成。假设有N重缓冲，GPU等CPU第一次提交渲染命令后执行命令。当CPU需要处理的帧数与当前GPU处理的帧差N的时候，CPU等待GPU工作完成。此后，CPU的工作都会等待GPU的工作完成才开始执行，CPU和GPU进入了稳定状态。</p>
-<p><img src="https://i.loli.net/2018/08/04/5b658a83c410c.jpg" alt="image"></p>
-<p>设想双重缓冲的情况。在GPU执行完命令执行SwapBuffer的时候，由于FrontBuffer和BackBuffer需要进行数据的拷贝，GPU在这个时候是无法进行绘制的。所以GPU在双重缓冲下并没有满负载的工作。</p>
-<p><img src="https://i.loli.net/2018/08/02/5b6314f003fa9.jpg" alt="image"></p>
-<p>为了最大化的压榨GPU，可以使用三重缓冲。由于有两个BackBuffer，在SwapBuffer的时候，GPU可以继续像另一个BackBuffer写入像素。它可以完美的消除GPU的等待时间。</p>
-<p><img src="https://i.loli.net/2018/08/04/5b658a83cdeac.jpg" alt="image"></p>
-<h2 id="二-metal三重缓冲的实现"><a class="markdownIt-Anchor" href="#二-metal三重缓冲的实现"></a> 二、Metal三重缓冲的实现</h2>
-<p>缓冲过多会造成延迟过大、内存占用过高，缓冲过少CPU和GPU会有空闲时间。在Metal上，使用信号量和三重缓冲能比较优美的解决这些问题。</p>
-<h3 id="1-信号量"><a class="markdownIt-Anchor" href="#1-信号量"></a> 1、信号量</h3>
-<p>信号量可以理解为一个特殊的变量，程序对它的操作都是原子性的，可以通过PV操作修改信号量。在IOS上可以通过以下代码控制信号量。</p>
-<figure class="highlight obj-c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dispatch_semaphore_t sem =  dispatch_semaphore_create(<span class="number">3</span>); <span class="comment">// 创建数目为3的信号量</span></span><br><span class="line">dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);	<span class="comment">// 如果信号量为0，则等待；否则信号量-1，继续执行后面的代码</span></span><br><span class="line">dispatch_semaphore_signal(sem);	<span class="comment">// 释放信号量，信号量+1</span></span><br></pre></td></tr></tbody></table></figure>
-<p>通过这三个函数能够实现CPU与GPU之间的同步。</p>
-<h3 id="2-metal的实现"><a class="markdownIt-Anchor" href="#2-metal的实现"></a> 2、Metal的实现</h3>
-<p>帧之间循环操作缓冲，当GPU完成命令后通知CPU执行后续的任务，从而实现CPU与GPU之间的高并发。</p>
-<figure class="highlight obj-c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="built_in">NSUInteger</span> kMaxInflightBuffers = <span class="number">3</span>;</span><br><span class="line"><span class="comment">/* Additional constants */</span></span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Renderer</span></span></span><br><span class="line">{</span><br><span class="line">    dispatch_semaphore_t _frameBoundarySemaphore;</span><br><span class="line">    <span class="built_in">NSUInteger</span> _currentFrameIndex;</span><br><span class="line">    <span class="built_in">NSArray</span> &lt;<span class="keyword">id</span> &lt;<span class="built_in">MTLBuffer</span>&gt;&gt; _dynamicDataBuffers;</span><br><span class="line">    <span class="comment">/* Additional variables */</span></span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line">- (<span class="keyword">void</span>)configureMetal</span><br><span class="line">{</span><br><span class="line">    <span class="comment">// Create a semaphore that gets signaled at each frame boundary.</span></span><br><span class="line">    <span class="comment">// The GPU signals the semaphore once it completes a frame's work, allowing the CPU to work on a new frame</span></span><br><span class="line">    _frameBoundarySemaphore = dispatch_semaphore_create(kMaxInflightBuffers);</span><br><span class="line">    _currentFrameIndex = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">/* Additional configuration */</span></span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line">- (<span class="keyword">void</span>)makeResources</span><br><span class="line">{</span><br><span class="line">    <span class="comment">// Create a FIFO queue of three dynamic data buffers</span></span><br><span class="line">    <span class="comment">// This ensures that the CPU and GPU are never accessing the same buffer simultaneously</span></span><br><span class="line">    <span class="built_in">MTLResourceOptions</span> bufferOptions = <span class="comment">/* ... */</span>;</span><br><span class="line">    <span class="built_in">NSMutableArray</span> *mutableDynamicDataBuffers = [<span class="built_in">NSMutableArray</span> arrayWithCapacity:kMaxInflightBuffers];</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; kMaxInflightBuffers; i++)</span><br><span class="line">    {</span><br><span class="line">        <span class="comment">// Create a new buffer with enough capacity to store one instance of the dynamic buffer data</span></span><br><span class="line">        <span class="keyword">id</span> &lt;<span class="built_in">MTLBuffer</span>&gt; dynamicDataBuffer = [_device newBufferWithLength:<span class="keyword">sizeof</span>(DynamicBufferData) options:bufferOptions];</span><br><span class="line">        [mutableDynamicDataBuffers addObject:dynamicDataBuffer];</span><br><span class="line">    }</span><br><span class="line">    _dynamicDataBuffers = [mutableDynamicDataBuffers <span class="keyword">copy</span>];</span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line">- (<span class="keyword">void</span>)update</span><br><span class="line">{</span><br><span class="line">    <span class="comment">// Advance the current frame index, which determines the correct dynamic data buffer for the frame</span></span><br><span class="line">    _currentFrameIndex = (_currentFrameIndex + <span class="number">1</span>) % kMaxInflightBuffers;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Update the contents of the dynamic data buffer</span></span><br><span class="line">    DynamicBufferData *dynamicBufferData = [_dynamicDataBuffers[_currentFrameIndex] contents];</span><br><span class="line">    <span class="comment">/* Perform updates */</span></span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line">- (<span class="keyword">void</span>)render</span><br><span class="line">{</span><br><span class="line">    <span class="comment">// Wait until the inflight command buffer has completed its work</span></span><br><span class="line">    dispatch_semaphore_wait(_frameBoundarySemaphore, DISPATCH_TIME_FOREVER);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Update the per-frame dynamic buffer data</span></span><br><span class="line">    [<span class="keyword">self</span> update];</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Create a command buffer and render command encoder</span></span><br><span class="line">    <span class="keyword">id</span> &lt;<span class="built_in">MTLCommandBuffer</span>&gt; commandBuffer = [_commandQueue commandBuffer];</span><br><span class="line">    <span class="keyword">id</span> &lt;<span class="built_in">MTLRenderCommandEncoder</span>&gt; renderCommandEncoder = [commandBuffer renderCommandEncoderWithDescriptor:_renderPassDescriptor];</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Set the dynamic data buffer for the frame</span></span><br><span class="line">    [renderCommandEncoder setVertexBuffer:_dynamicDataBuffers[_currentFrameIndex] offset:<span class="number">0</span> atIndex:<span class="number">0</span>];</span><br><span class="line">    <span class="comment">/* Additional encoding */</span></span><br><span class="line">    [renderCommandEncoder endEncoding];</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Schedule a drawable presentation to occur after the GPU completes its work</span></span><br><span class="line">    [commandBuffer presentDrawable:view.currentDrawable];</span><br><span class="line"> </span><br><span class="line">    __<span class="keyword">weak</span> dispatch_semaphore_t semaphore = _frameBoundarySemaphore;</span><br><span class="line">    [commandBuffer addCompletedHandler:^(<span class="keyword">id</span>&lt;<span class="built_in">MTLCommandBuffer</span>&gt; commandBuffer) {</span><br><span class="line">        <span class="comment">// GPU work is complete</span></span><br><span class="line">        <span class="comment">// Signal the semaphore to start the CPU work</span></span><br><span class="line">        dispatch_semaphore_signal(semaphore);</span><br><span class="line">    }];</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// CPU work is complete</span></span><br><span class="line">    <span class="comment">// Commit the command buffer and start the GPU work</span></span><br><span class="line">    [commandBuffer commit];</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>引用：</p>
-<ol>
-<li><a href="https://developer.apple.com/documentation/metal/fundamental_lessons/cpu_and_gpu_synchronization" target="_blank" rel="noopener">https://developer.apple.com/documentation/metal/fundamental_lessons/cpu_and_gpu_synchronization</a></li>
-<li><a href="http://gad.qq.com/article/detail/41867" target="_blank" rel="noopener">http://gad.qq.com/article/detail/41867</a></li>
-<li><a href="https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/TripleBuffering.html#//apple_ref/doc/uid/TP40016642-CH5-SW1" target="_blank" rel="noopener">https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/TripleBuffering.html#//apple_ref/doc/uid/TP40016642-CH5-SW1</a></li>
-<li><a href="https://gamedev.stackexchange.com/questions/82318/what-problem-does-double-or-triple-buffering-solve-in-modern-games" target="_blank" rel="noopener">https://gamedev.stackexchange.com/questions/82318/what-problem-does-double-or-triple-buffering-solve-in-modern-games</a></li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/27/%E5%B7%A5%E5%85%B7/git%E4%BC%A0%E8%BE%93%E9%80%9F%E5%BA%A6%E6%85%A2%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/">
-
-    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="silence394">
-      <meta itemprop="description" content="认识自我、认识世界">
-    </span>
-
-    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="知行合一">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/07/27/%E5%B7%A5%E5%85%B7/git%E4%BC%A0%E8%BE%93%E9%80%9F%E5%BA%A6%E6%85%A2%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" class="post-title-link" itemprop="url">git传输速度慢的解决方案</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-07-27 00:00:00" itemprop="dateCreated datePublished" datetime="2018-07-27T00:00:00+08:00">2018-07-27</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-03-10 10:22:12" itemprop="dateModified" datetime="2020-03-10T10:22:12+08:00">2020-03-10</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
-                    <span itemprop="name">工具</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>343</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 ≈</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>在用git的时候，经常会碰到push、pull、clone速度很慢的情况，并且当传输量过大的时候很有可能失败。这是因为git的域名被限制了。</p>
-<p>通过以下步骤可以提升git传输的速率。</p>
-<ol>
-<li>通过<a href="https://www.ip.cn/index.php" target="_blank" rel="noopener">查询域名IP</a>查询github.com和global-ssl.fastly.Net的IP地址。</li>
-<li>将查的的IP添加到hosts的末尾。</li>
-</ol>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">151.101.73.194 github.global.ssl.fastly.net</span><br><span class="line">52.74.223.119 github.com</span><br></pre></td></tr></tbody></table></figure>
-<ol start="3">
-<li>执行ipconfig /flushdns，刷新DNS。</li>
-<li>重新启动git。</li>
-</ol>
-<p>对于使用s的可以配置git如下:：</p>
-<figure class="highlight sh"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global http.https://github.com.proxy socks5://127.0.0.1:1080</span><br></pre></td></tr></tbody></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/25/%E6%80%A7%E8%83%BD/GPU%E4%B8%BB%E6%B5%81%E6%9E%B6%E6%9E%84/">
-
-    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="silence394">
-      <meta itemprop="description" content="认识自我、认识世界">
-    </span>
-
-    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="知行合一">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/07/25/%E6%80%A7%E8%83%BD/GPU%E4%B8%BB%E6%B5%81%E6%9E%B6%E6%9E%84/" class="post-title-link" itemprop="url">移动GPU主流架构</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-07-25 00:00:00" itemprop="dateCreated datePublished" datetime="2018-07-25T00:00:00+08:00">2018-07-25</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-03-10 10:22:00" itemprop="dateModified" datetime="2020-03-10T10:22:00+08:00">2020-03-10</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%80%A7%E8%83%BD/" itemprop="url" rel="index">
-                    <span itemprop="name">性能</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 ≈</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>在TBR GPU上，将像素重新写到memorybuffer上的操作可以省略，但是shadering 还是要执行。</p>
-<p>PowerVR的GPU上不存在这个问题，因为会先画深度。也叫TBDR.</p>
-<p>Single Programe Multiple Data</p>
-<p>Single Instrction Multiple Data</p>
-<p>Single Instrction multiple Thread</p>
-<p>Single Instruction Multiple Thread</p>
-<h3 id="gpu架构"><a class="markdownIt-Anchor" href="#gpu架构"></a> GPU架构</h3>
-<p>PowerVR使用了一种叫做Tile Based Deferred Rendering的架构，简称TBDR。在图形管线里尽早地减少冗余操作，减少带宽和电量的使用。</p>
-<p>CPU处理多分支少数据的任务，线程处理的任务一般与其他任务无关。一般CPU的核心数为四到八个。</p>
-<p>GPU在多个线程中执行相同的命令，处理不同的数据(SIMD)。SIMD的好处是相当数量的线程以一个很高的效率并行执行命令。很擅长处理大量相关的数据，如图像处理这种需要一次处理大量数据的算法。</p>
-<p>一般3到4个元素，对SIMD是比较合适的，如果处理较少的数据，会有浪费的现象。如处理3个元素，只有75%的效率运行这些指令。</p>
-<h4 id="immediate-mode-rendererimr"><a class="markdownIt-Anchor" href="#immediate-mode-rendererimr"></a> Immediate Mode Renderer(IMR)</h4>
-<h4 id="tile-based-renderertbr"><a class="markdownIt-Anchor" href="#tile-based-renderertbr"></a> Tile Based Renderer(TBR)</h4>
-<h4 id="tile-based-deferred-renderertbdr"><a class="markdownIt-Anchor" href="#tile-based-deferred-renderertbdr"></a> Tile Based Deferred Renderer(TBDR)</h4>
-<p>不要在一帧里面频繁的切换framebuffer<br>
-每一次bindunbind都需要对整个framebuffer的一次立即绘制</p>
-<ol start="8">
-<li>Do Not Use Discard</li>
-</ol>
-<p>参考：</p>
-<ol>
-<li>
-<p><a href="http://www.expreview.com/24705-3.html" target="_blank" rel="noopener">http://www.expreview.com/24705-3.html</a></p>
-</li>
-<li>
-<p><a href="https://blog.csdn.net/leonwei/article/details/79298381" target="_blank" rel="noopener">https://blog.csdn.net/leonwei/article/details/79298381</a></p>
-</li>
-<li>
-<p><a href="http://alanliu90.hatenablog.com/entry/2017/08/27/%E7%A7%BB%E5%8A%A8%E5%B9%B3%E5%8F%B0GPU" target="_blank" rel="noopener">http://alanliu90.hatenablog.com/entry/2017/08/27/移动平台GPU</a></p>
-</li>
-<li>
-<p>PowerVR Hardware.Architecture Overview for Developers</p>
-</li>
-<li>
-<p><a href="https://blog.csdn.net/leonwei/article/details/79298381" target="_blank" rel="noopener">https://blog.csdn.net/leonwei/article/details/79298381</a></p>
-</li>
-<li>
-<p><a href="https://blog.csdn.net/u013467442/article/details/40686523" target="_blank" rel="noopener">https://blog.csdn.net/u013467442/article/details/40686523</a></p>
-</li>
-<li>
-<p><a href="https://blog.csdn.net/pizi0475/article/details/58627435" target="_blank" rel="noopener">https://blog.csdn.net/pizi0475/article/details/58627435</a></p>
-</li>
-<li>
-<p><a href="https://www.zhihu.com/question/20720436/answer/151341206" target="_blank" rel="noopener">https://www.zhihu.com/question/20720436/answer/151341206</a></p>
-</li>
-<li>
-<p><a href="https://www.zhihu.com/question/20720436" target="_blank" rel="noopener">https://www.zhihu.com/question/20720436</a></p>
-</li>
-<li>
-<p><a href="https://stackoverflow.com/questions/4853856/why-are-draw-calls-expensive" target="_blank" rel="noopener">https://stackoverflow.com/questions/4853856/why-are-draw-calls-expensive</a></p>
-</li>
-<li>
-<p><a href="https://docs.microsoft.com/zh-cn/windows/desktop/direct3d9/accurately-profiling-direct3d-api-calls" target="_blank" rel="noopener">https://docs.microsoft.com/zh-cn/windows/desktop/direct3d9/accurately-profiling-direct3d-api-calls</a></p>
-</li>
-<li>
-<p><a href="http://c0de517e.blogspot.com/2008/04/gpu-part-1.html" target="_blank" rel="noopener">http://c0de517e.blogspot.com/2008/04/gpu-part-1.html</a></p>
-</li>
-<li>
-<p><a href="https://www.zhihu.com/question/54037063" target="_blank" rel="noopener">https://www.zhihu.com/question/54037063</a></p>
-</li>
-<li>
-<p><a href="http://www.cnblogs.com/gameknife/p/3515714.html" target="_blank" rel="noopener">http://www.cnblogs.com/gameknife/p/3515714.html</a></p>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1436,7 +1357,7 @@ Z
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1488,12 +1409,12 @@ Z
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">103k</span>
+    <span title="站点总字数">119k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:33</span>
+    <span title="站点阅读时长">1:49</span>
 </div>
 
         

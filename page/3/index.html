@@ -180,6 +180,393 @@
   
   
   <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/01/%E6%80%A7%E8%83%BD/Metal%E7%9A%84%E4%B8%89%E9%87%8D%E7%BC%93%E5%86%B2%E6%9C%BA%E5%88%B6/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/08/01/%E6%80%A7%E8%83%BD/Metal%E7%9A%84%E4%B8%89%E9%87%8D%E7%BC%93%E5%86%B2%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">Metal的三重缓冲机制</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-08-01 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-01T00:00:00+08:00">2018-08-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:22:29" itemprop="dateModified" datetime="2020-03-10T10:22:29+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%80%A7%E8%83%BD/" itemprop="url" rel="index">
+                    <span itemprop="name">性能</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="一-多重缓冲"><a class="markdownIt-Anchor" href="#一-多重缓冲"></a> 一、多重缓冲</h2>
+<p>CPU和GPU是并行工作的，CPU提交命令，GPU处理命令。当二者的任务处理完成，每帧的工作也就完成了。以下面的渲染流程为例，介绍多重缓冲的概念。</p>
+<p>CPU更新VertexBuffer，GPU读取VertexBuffer绘制。以此为例来说明，CPU和GPU的工作流程。</p>
+<ol>
+<li>每帧开始</li>
+<li>CPU更新VertexBuffer</li>
+<li>CPU提交渲染命令</li>
+<li>GPU执行渲染命令</li>
+<li>GPU读取VertexBuffer</li>
+<li>GPU绘制像素到屏幕</li>
+<li>完成绘制</li>
+</ol>
+<h3 id="1-cpu与gpu并行"><a class="markdownIt-Anchor" href="#1-cpu与gpu并行"></a> 1、CPU与GPU并行</h3>
+<p>当CPU和GPU只拥有一份VertexBuffer的时候，CPU和GPU为避免存取冲突，必须要等待VertexBuffer没有引用时才能对其操作。很明显这种方案的效率是及其低下的。</p>
+<p><img src="https://docs-assets.developer.apple.com/published/d9dc44d823/77a3d759-a808-4e69-81f1-3bb2fa24e545.png" alt="image"></p>
+<p>而为了最大化的利用CPU和GPU的并行性，CPU和GPU需要处于持续工作的状态。理想情况下，GPU在处理第一帧的绘制工作，CPU已经在处理渲染命令的组织了。在此种情况下仍然只有一种VertexBuffer的情况下，CPU Frame2更新VertexBuffer，比GPU Frame1里读取VertexBuffer要早的情况下，会出现错误的绘制结果。</p>
+<p><img src="https://docs-assets.developer.apple.com/published/9ffae9d282/4add8abb-f845-4ae6-80c1-818cba38f4e4.png" alt="image"></p>
+<p>为了解决以上的处理器空闲和对Buffer存取的冲突，可以创建多份VertexBuffer供CPU和GPU使用，也就是多重缓冲。CPU和GPU依次处理第1帧的VertexBuffer 1，第2帧的VertexBuffer 2，第3帧的VertexBuffer 3，以此类推。在这种结构下，CPU和GPU可以无等待的存取VertexBuffer，最大化的利用CPU和GPU的并发性。</p>
+<p><img src="https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/Art/ResourceManagement_TripleBuffering_2x.png" alt="image"></p>
+<h3 id="2-多重缓冲"><a class="markdownIt-Anchor" href="#2-多重缓冲"></a> 2、多重缓冲</h3>
+<p>假设CPU提交命令消耗的时间是GPU处理命令所花费的时间的3/4，Buffer的数量无限制，不会发生资源存取冲突的情况，如果按照最简单的CPU和GPU不用等待、并行执行，会导致CPU与GPU之间的执行延时越来越大，即延迟越来越高。</p>
+<p><img src="https://i.loli.net/2018/08/02/5b6314eb98ddc.jpg" alt="image"></p>
+<p>所以为了避免CPU与GPU的延迟越来越大，需要让CPU等待GPU的执行完成。假设有N重缓冲，GPU等CPU第一次提交渲染命令后执行命令。当CPU需要处理的帧数与当前GPU处理的帧差N的时候，CPU等待GPU工作完成。此后，CPU的工作都会等待GPU的工作完成才开始执行，CPU和GPU进入了稳定状态。</p>
+<p><img src="https://i.loli.net/2018/08/04/5b658a83c410c.jpg" alt="image"></p>
+<p>设想双重缓冲的情况。在GPU执行完命令执行SwapBuffer的时候，由于FrontBuffer和BackBuffer需要进行数据的拷贝，GPU在这个时候是无法进行绘制的。所以GPU在双重缓冲下并没有满负载的工作。</p>
+<p><img src="https://i.loli.net/2018/08/02/5b6314f003fa9.jpg" alt="image"></p>
+<p>为了最大化的压榨GPU，可以使用三重缓冲。由于有两个BackBuffer，在SwapBuffer的时候，GPU可以继续像另一个BackBuffer写入像素。它可以完美的消除GPU的等待时间。</p>
+<p><img src="https://i.loli.net/2018/08/04/5b658a83cdeac.jpg" alt="image"></p>
+<h2 id="二-metal三重缓冲的实现"><a class="markdownIt-Anchor" href="#二-metal三重缓冲的实现"></a> 二、Metal三重缓冲的实现</h2>
+<p>缓冲过多会造成延迟过大、内存占用过高，缓冲过少CPU和GPU会有空闲时间。在Metal上，使用信号量和三重缓冲能比较优美的解决这些问题。</p>
+<h3 id="1-信号量"><a class="markdownIt-Anchor" href="#1-信号量"></a> 1、信号量</h3>
+<p>信号量可以理解为一个特殊的变量，程序对它的操作都是原子性的，可以通过PV操作修改信号量。在IOS上可以通过以下代码控制信号量。</p>
+<figure class="highlight obj-c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dispatch_semaphore_t sem =  dispatch_semaphore_create(<span class="number">3</span>); <span class="comment">// 创建数目为3的信号量</span></span><br><span class="line">dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);	<span class="comment">// 如果信号量为0，则等待；否则信号量-1，继续执行后面的代码</span></span><br><span class="line">dispatch_semaphore_signal(sem);	<span class="comment">// 释放信号量，信号量+1</span></span><br></pre></td></tr></tbody></table></figure>
+<p>通过这三个函数能够实现CPU与GPU之间的同步。</p>
+<h3 id="2-metal的实现"><a class="markdownIt-Anchor" href="#2-metal的实现"></a> 2、Metal的实现</h3>
+<p>帧之间循环操作缓冲，当GPU完成命令后通知CPU执行后续的任务，从而实现CPU与GPU之间的高并发。</p>
+<figure class="highlight obj-c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="built_in">NSUInteger</span> kMaxInflightBuffers = <span class="number">3</span>;</span><br><span class="line"><span class="comment">/* Additional constants */</span></span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Renderer</span></span></span><br><span class="line">{</span><br><span class="line">    dispatch_semaphore_t _frameBoundarySemaphore;</span><br><span class="line">    <span class="built_in">NSUInteger</span> _currentFrameIndex;</span><br><span class="line">    <span class="built_in">NSArray</span> &lt;<span class="keyword">id</span> &lt;<span class="built_in">MTLBuffer</span>&gt;&gt; _dynamicDataBuffers;</span><br><span class="line">    <span class="comment">/* Additional variables */</span></span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line">- (<span class="keyword">void</span>)configureMetal</span><br><span class="line">{</span><br><span class="line">    <span class="comment">// Create a semaphore that gets signaled at each frame boundary.</span></span><br><span class="line">    <span class="comment">// The GPU signals the semaphore once it completes a frame's work, allowing the CPU to work on a new frame</span></span><br><span class="line">    _frameBoundarySemaphore = dispatch_semaphore_create(kMaxInflightBuffers);</span><br><span class="line">    _currentFrameIndex = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">/* Additional configuration */</span></span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line">- (<span class="keyword">void</span>)makeResources</span><br><span class="line">{</span><br><span class="line">    <span class="comment">// Create a FIFO queue of three dynamic data buffers</span></span><br><span class="line">    <span class="comment">// This ensures that the CPU and GPU are never accessing the same buffer simultaneously</span></span><br><span class="line">    <span class="built_in">MTLResourceOptions</span> bufferOptions = <span class="comment">/* ... */</span>;</span><br><span class="line">    <span class="built_in">NSMutableArray</span> *mutableDynamicDataBuffers = [<span class="built_in">NSMutableArray</span> arrayWithCapacity:kMaxInflightBuffers];</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; kMaxInflightBuffers; i++)</span><br><span class="line">    {</span><br><span class="line">        <span class="comment">// Create a new buffer with enough capacity to store one instance of the dynamic buffer data</span></span><br><span class="line">        <span class="keyword">id</span> &lt;<span class="built_in">MTLBuffer</span>&gt; dynamicDataBuffer = [_device newBufferWithLength:<span class="keyword">sizeof</span>(DynamicBufferData) options:bufferOptions];</span><br><span class="line">        [mutableDynamicDataBuffers addObject:dynamicDataBuffer];</span><br><span class="line">    }</span><br><span class="line">    _dynamicDataBuffers = [mutableDynamicDataBuffers <span class="keyword">copy</span>];</span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line">- (<span class="keyword">void</span>)update</span><br><span class="line">{</span><br><span class="line">    <span class="comment">// Advance the current frame index, which determines the correct dynamic data buffer for the frame</span></span><br><span class="line">    _currentFrameIndex = (_currentFrameIndex + <span class="number">1</span>) % kMaxInflightBuffers;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Update the contents of the dynamic data buffer</span></span><br><span class="line">    DynamicBufferData *dynamicBufferData = [_dynamicDataBuffers[_currentFrameIndex] contents];</span><br><span class="line">    <span class="comment">/* Perform updates */</span></span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line">- (<span class="keyword">void</span>)render</span><br><span class="line">{</span><br><span class="line">    <span class="comment">// Wait until the inflight command buffer has completed its work</span></span><br><span class="line">    dispatch_semaphore_wait(_frameBoundarySemaphore, DISPATCH_TIME_FOREVER);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Update the per-frame dynamic buffer data</span></span><br><span class="line">    [<span class="keyword">self</span> update];</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Create a command buffer and render command encoder</span></span><br><span class="line">    <span class="keyword">id</span> &lt;<span class="built_in">MTLCommandBuffer</span>&gt; commandBuffer = [_commandQueue commandBuffer];</span><br><span class="line">    <span class="keyword">id</span> &lt;<span class="built_in">MTLRenderCommandEncoder</span>&gt; renderCommandEncoder = [commandBuffer renderCommandEncoderWithDescriptor:_renderPassDescriptor];</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Set the dynamic data buffer for the frame</span></span><br><span class="line">    [renderCommandEncoder setVertexBuffer:_dynamicDataBuffers[_currentFrameIndex] offset:<span class="number">0</span> atIndex:<span class="number">0</span>];</span><br><span class="line">    <span class="comment">/* Additional encoding */</span></span><br><span class="line">    [renderCommandEncoder endEncoding];</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Schedule a drawable presentation to occur after the GPU completes its work</span></span><br><span class="line">    [commandBuffer presentDrawable:view.currentDrawable];</span><br><span class="line"> </span><br><span class="line">    __<span class="keyword">weak</span> dispatch_semaphore_t semaphore = _frameBoundarySemaphore;</span><br><span class="line">    [commandBuffer addCompletedHandler:^(<span class="keyword">id</span>&lt;<span class="built_in">MTLCommandBuffer</span>&gt; commandBuffer) {</span><br><span class="line">        <span class="comment">// GPU work is complete</span></span><br><span class="line">        <span class="comment">// Signal the semaphore to start the CPU work</span></span><br><span class="line">        dispatch_semaphore_signal(semaphore);</span><br><span class="line">    }];</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// CPU work is complete</span></span><br><span class="line">    <span class="comment">// Commit the command buffer and start the GPU work</span></span><br><span class="line">    [commandBuffer commit];</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>引用：</p>
+<ol>
+<li><a href="https://developer.apple.com/documentation/metal/fundamental_lessons/cpu_and_gpu_synchronization" target="_blank" rel="noopener">https://developer.apple.com/documentation/metal/fundamental_lessons/cpu_and_gpu_synchronization</a></li>
+<li><a href="http://gad.qq.com/article/detail/41867" target="_blank" rel="noopener">http://gad.qq.com/article/detail/41867</a></li>
+<li><a href="https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/TripleBuffering.html#//apple_ref/doc/uid/TP40016642-CH5-SW1" target="_blank" rel="noopener">https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/MTLBestPracticesGuide/TripleBuffering.html#//apple_ref/doc/uid/TP40016642-CH5-SW1</a></li>
+<li><a href="https://gamedev.stackexchange.com/questions/82318/what-problem-does-double-or-triple-buffering-solve-in-modern-games" target="_blank" rel="noopener">https://gamedev.stackexchange.com/questions/82318/what-problem-does-double-or-triple-buffering-solve-in-modern-games</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/27/%E5%B7%A5%E5%85%B7/git%E4%BC%A0%E8%BE%93%E9%80%9F%E5%BA%A6%E6%85%A2%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/07/27/%E5%B7%A5%E5%85%B7/git%E4%BC%A0%E8%BE%93%E9%80%9F%E5%BA%A6%E6%85%A2%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" class="post-title-link" itemprop="url">git传输速度慢的解决方案</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-07-27 00:00:00" itemprop="dateCreated datePublished" datetime="2018-07-27T00:00:00+08:00">2018-07-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:22:12" itemprop="dateModified" datetime="2020-03-10T10:22:12+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
+                    <span itemprop="name">工具</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>343</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在用git的时候，经常会碰到push、pull、clone速度很慢的情况，并且当传输量过大的时候很有可能失败。这是因为git的域名被限制了。</p>
+<p>通过以下步骤可以提升git传输的速率。</p>
+<ol>
+<li>通过<a href="https://www.ip.cn/index.php" target="_blank" rel="noopener">查询域名IP</a>查询github.com和global-ssl.fastly.Net的IP地址。</li>
+<li>将查的的IP添加到hosts的末尾。</li>
+</ol>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">151.101.73.194 github.global.ssl.fastly.net</span><br><span class="line">52.74.223.119 github.com</span><br></pre></td></tr></tbody></table></figure>
+<ol start="3">
+<li>执行ipconfig /flushdns，刷新DNS。</li>
+<li>重新启动git。</li>
+</ol>
+<p>对于使用s的可以配置git如下:：</p>
+<figure class="highlight sh"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global http.https://github.com.proxy socks5://127.0.0.1:1080</span><br></pre></td></tr></tbody></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/25/%E6%80%A7%E8%83%BD/GPU%E4%B8%BB%E6%B5%81%E6%9E%B6%E6%9E%84/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/07/25/%E6%80%A7%E8%83%BD/GPU%E4%B8%BB%E6%B5%81%E6%9E%B6%E6%9E%84/" class="post-title-link" itemprop="url">移动GPU主流架构</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-07-25 00:00:00" itemprop="dateCreated datePublished" datetime="2018-07-25T00:00:00+08:00">2018-07-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:22:00" itemprop="dateModified" datetime="2020-03-10T10:22:00+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%80%A7%E8%83%BD/" itemprop="url" rel="index">
+                    <span itemprop="name">性能</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在TBR GPU上，将像素重新写到memorybuffer上的操作可以省略，但是shadering 还是要执行。</p>
+<p>PowerVR的GPU上不存在这个问题，因为会先画深度。也叫TBDR.</p>
+<p>Single Programe Multiple Data</p>
+<p>Single Instrction Multiple Data</p>
+<p>Single Instrction multiple Thread</p>
+<p>Single Instruction Multiple Thread</p>
+<h3 id="gpu架构"><a class="markdownIt-Anchor" href="#gpu架构"></a> GPU架构</h3>
+<p>PowerVR使用了一种叫做Tile Based Deferred Rendering的架构，简称TBDR。在图形管线里尽早地减少冗余操作，减少带宽和电量的使用。</p>
+<p>CPU处理多分支少数据的任务，线程处理的任务一般与其他任务无关。一般CPU的核心数为四到八个。</p>
+<p>GPU在多个线程中执行相同的命令，处理不同的数据(SIMD)。SIMD的好处是相当数量的线程以一个很高的效率并行执行命令。很擅长处理大量相关的数据，如图像处理这种需要一次处理大量数据的算法。</p>
+<p>一般3到4个元素，对SIMD是比较合适的，如果处理较少的数据，会有浪费的现象。如处理3个元素，只有75%的效率运行这些指令。</p>
+<h4 id="immediate-mode-rendererimr"><a class="markdownIt-Anchor" href="#immediate-mode-rendererimr"></a> Immediate Mode Renderer(IMR)</h4>
+<h4 id="tile-based-renderertbr"><a class="markdownIt-Anchor" href="#tile-based-renderertbr"></a> Tile Based Renderer(TBR)</h4>
+<h4 id="tile-based-deferred-renderertbdr"><a class="markdownIt-Anchor" href="#tile-based-deferred-renderertbdr"></a> Tile Based Deferred Renderer(TBDR)</h4>
+<p>不要在一帧里面频繁的切换framebuffer<br>
+每一次bindunbind都需要对整个framebuffer的一次立即绘制</p>
+<ol start="8">
+<li>Do Not Use Discard</li>
+</ol>
+<p>参考：</p>
+<ol>
+<li>
+<p><a href="http://www.expreview.com/24705-3.html" target="_blank" rel="noopener">http://www.expreview.com/24705-3.html</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/leonwei/article/details/79298381" target="_blank" rel="noopener">https://blog.csdn.net/leonwei/article/details/79298381</a></p>
+</li>
+<li>
+<p><a href="http://alanliu90.hatenablog.com/entry/2017/08/27/%E7%A7%BB%E5%8A%A8%E5%B9%B3%E5%8F%B0GPU" target="_blank" rel="noopener">http://alanliu90.hatenablog.com/entry/2017/08/27/移动平台GPU</a></p>
+</li>
+<li>
+<p>PowerVR Hardware.Architecture Overview for Developers</p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/leonwei/article/details/79298381" target="_blank" rel="noopener">https://blog.csdn.net/leonwei/article/details/79298381</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/u013467442/article/details/40686523" target="_blank" rel="noopener">https://blog.csdn.net/u013467442/article/details/40686523</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/pizi0475/article/details/58627435" target="_blank" rel="noopener">https://blog.csdn.net/pizi0475/article/details/58627435</a></p>
+</li>
+<li>
+<p><a href="https://www.zhihu.com/question/20720436/answer/151341206" target="_blank" rel="noopener">https://www.zhihu.com/question/20720436/answer/151341206</a></p>
+</li>
+<li>
+<p><a href="https://www.zhihu.com/question/20720436" target="_blank" rel="noopener">https://www.zhihu.com/question/20720436</a></p>
+</li>
+<li>
+<p><a href="https://stackoverflow.com/questions/4853856/why-are-draw-calls-expensive" target="_blank" rel="noopener">https://stackoverflow.com/questions/4853856/why-are-draw-calls-expensive</a></p>
+</li>
+<li>
+<p><a href="https://docs.microsoft.com/zh-cn/windows/desktop/direct3d9/accurately-profiling-direct3d-api-calls" target="_blank" rel="noopener">https://docs.microsoft.com/zh-cn/windows/desktop/direct3d9/accurately-profiling-direct3d-api-calls</a></p>
+</li>
+<li>
+<p><a href="http://c0de517e.blogspot.com/2008/04/gpu-part-1.html" target="_blank" rel="noopener">http://c0de517e.blogspot.com/2008/04/gpu-part-1.html</a></p>
+</li>
+<li>
+<p><a href="https://www.zhihu.com/question/54037063" target="_blank" rel="noopener">https://www.zhihu.com/question/54037063</a></p>
+</li>
+<li>
+<p><a href="http://www.cnblogs.com/gameknife/p/3515714.html" target="_blank" rel="noopener">http://www.cnblogs.com/gameknife/p/3515714.html</a></p>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/19/%E6%B8%B2%E6%9F%93/Gamma%E6%A0%A1%E6%AD%A3/">
 
     <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1026,346 +1413,6 @@
   
   
 
-        
-  
-  
-  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/10/%E6%B8%B2%E6%9F%93/Liang-Barsky%E8%A3%81%E5%89%AA%E7%AE%97%E6%B3%95/">
-
-    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="silence394">
-      <meta itemprop="description" content="认识自我、认识世界">
-    </span>
-
-    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="知行合一">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/04/10/%E6%B8%B2%E6%9F%93/Liang-Barsky%E8%A3%81%E5%89%AA%E7%AE%97%E6%B3%95/" class="post-title-link" itemprop="url">梁友栋-Barsky裁剪算法</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-04-10 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-10T00:00:00+08:00">2018-04-10</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-03-10 10:19:22" itemprop="dateModified" datetime="2020-03-10T10:19:22+08:00">2020-03-10</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%B8%B2%E6%9F%93/" itemprop="url" rel="index">
-                    <span itemprop="name">渲染</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.3k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 ≈</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>梁友栋-Barsky裁剪算法是参数化线段裁剪算法，基于参数t求线段与裁剪区域的交点。</p>
-<h2 id="一-算法思想"><a class="markdownIt-Anchor" href="#一-算法思想"></a> 一、算法思想</h2>
-<p>一条端点为P1(x1, y1)，P2(x2, y2)的线段参数方式可以表示如下：</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">x = x1 + t * (x2 - x1)</span><br><span class="line">y = y1 + t * (y2 - y1)</span><br></pre></td></tr></tbody></table></figure>
-<p>令dx = x2 - x1，dy = y2 - y1,则上述方程变形为：</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">x = x1 + t * dx</span><br><span class="line">y = y1 + t * dy</span><br></pre></td></tr></tbody></table></figure>
-<p>设裁剪区域由点(xmin, ymin)，(xmax, ymax)定义，设线段上的点P(x, y)位于裁剪区域内，则其满足以下不等式:</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">xmin &lt;= x1 + t * dx &lt;= xmax</span><br><span class="line">ymin &lt;= y1 + t * dy &lt;= ymax</span><br></pre></td></tr></tbody></table></figure>
-<p>分离化简如下：</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">-dx * t &lt;= (-xmin + x1)</span><br><span class="line">dx * t &lt;= (xmax - x1)</span><br><span class="line">-dy * t &lt;= (-ymin + y1)</span><br><span class="line">dy * t &lt;= (ymax - y1)</span><br></pre></td></tr></tbody></table></figure>
-<p>则四个不等式可以统称为:</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pn * t &lt;= qn，其中 n = 0, 1, 2, 3</span><br></pre></td></tr></tbody></table></figure>
-<p>通过画图，很容易得出以下结论：</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">平行于边界的线段满足pn = 0，若qn &gt;= 0，则线段在裁剪区域内部，若qn &lt; 0，则线段在裁剪区域外部。</span><br><span class="line">当 pn &lt; 0 时，线段从裁减边界的外部进入内部，</span><br><span class="line">当 pn &gt; 0 时，线段从裁剪边界的内部离开。</span><br></pre></td></tr></tbody></table></figure>
-<p>那么对于给定线段所在的直线，我们可以计算其与裁减区域的交点，设得到的交点参数为t1，t2，t1表示从外进入到内的参数，t2表示从内部离开到外部的参数，则</p>
-<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1、t1由直线从外进入裁减区域决定，此时 pn &lt; 0，t &gt;= qn / pn，所以t1是各个 qn/pn 中的最大值。</span><br><span class="line">2、t2由直接从内部离开裁剪区域决定，此时 pn &gt; 0， t &lt;= qn / pn，所以t2是各个 qn/pn 中的最小值。</span><br><span class="line">3、当 pn = 0 并且，qn &lt; 0 时，线段在裁减区域外。</span><br><span class="line">4、当 0 &lt;= t1 &lt;= t2 &lt;= 1 时，线段与裁减区域有交点，将t1和t2带入方程可以得到被裁剪后的线段新端点为：</span><br><span class="line">    (x1 + t1 * dx, y1 + t1 * dy)和(x1 + t2 * dx, y1 + t2 * dy)。</span><br></pre></td></tr></tbody></table></figure>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/04/10/%E6%B8%B2%E6%9F%93/Liang-Barsky%E8%A3%81%E5%89%AA%E7%AE%97%E6%B3%95/#more" rel="contents">
-                阅读全文 »
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/04/%E5%81%A5%E8%BA%AB/%E5%81%A5%E8%BA%AB%E5%88%9D%E7%BA%A7%E8%AE%AD%E7%BB%83-%E8%83%B8%E9%83%A8/">
-
-    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="silence394">
-      <meta itemprop="description" content="认识自我、认识世界">
-    </span>
-
-    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="知行合一">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/04/04/%E5%81%A5%E8%BA%AB/%E5%81%A5%E8%BA%AB%E5%88%9D%E7%BA%A7%E8%AE%AD%E7%BB%83-%E8%83%B8%E9%83%A8/" class="post-title-link" itemprop="url">健身初级训练-胸部</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-04-04 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-04T00:00:00+08:00">2018-04-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-03-10 10:30:11" itemprop="dateModified" datetime="2020-03-10T10:30:11+08:00">2020-03-10</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%81%A5%E8%BA%AB/" itemprop="url" rel="index">
-                    <span itemprop="name">健身</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>405</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 ≈</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>胸部训练主要训练上胸、中胸、下胸、中缝、外沿、下沿。</p>
-<h2 id="一-训练"><a class="markdownIt-Anchor" href="#一-训练"></a> 一、训练</h2>
-<h3 id="1-训练动作"><a class="markdownIt-Anchor" href="#1-训练动作"></a> 1、训练动作</h3>
-<p>卧推训练<br>
-动作要点：</p>
-<ul>
-<li>躺下，抓住杠铃把自己提起来，收紧肩胛骨，下沉肩膀，再把自己的身体放在卧推椅</li>
-<li>肩胛骨保持收紧，不要耸肩</li>
-<li>小臂垂直地面，大臂与身体成45度角</li>
-<li>推起时肩膀不能前伸，注意呼吸</li>
-<li>推到顶端的时候夹胸，不要想是推杠铃，而是夹杠铃</li>
-</ul>
-<p>哑铃飞鸟<br>
-动作要点：</p>
-<ul>
-<li>
-<p>仰卧窄凳，双手持铃，掌心相对。上背部紧贴凳子，脊椎保持生理弯曲，核心收紧</p>
-</li>
-<li>
-<p>下放：下放哑铃时注意力集中在胸缝处，靠胸肌的张力控制住哑铃缓慢下放，同时充分吸气、挺胸，幅度要完全到位。</p>
-</li>
-<li>
-<p>收缩：上举时要靠胸肌的收缩带动双臂向上环抱，直至哑铃相触，这样可避免肩背 过分参与用力。</p>
-</li>
-<li>
-<p>意念集中：注意集中在胸部肌肉，感觉胸肌被拉扯和收缩。</p>
-</li>
-</ul>
-<h3 id="2-训练计划"><a class="markdownIt-Anchor" href="#2-训练计划"></a> 2、训练计划</h3>
-<ol>
-<li>热身</li>
-<li>哑铃飞鸟 10 * 4</li>
-<li>卧推（平板，上斜，下斜） 10 * 4</li>
-<li>哑铃推（平板，上斜） 10 * 4</li>
-<li>窄距哑铃推，哑铃飞鸟 10 * 4</li>
-<li>哑铃飞鸟（平板，下斜） 10 * 4</li>
-<li>双杠屈臂称</li>
-<li>俯卧撑</li>
-</ol>
-<h2 id="二-拉伸"><a class="markdownIt-Anchor" href="#二-拉伸"></a> 二、拉伸</h2>
-<p>待补充。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/04/%E5%81%A5%E8%BA%AB/%E8%82%B1%E4%BA%8C%E3%80%81%E4%B8%89%E5%A4%B4%E8%82%8C%E5%88%9D%E7%BA%A7%E8%AE%AD%E7%BB%83/">
-
-    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="silence394">
-      <meta itemprop="description" content="认识自我、认识世界">
-    </span>
-
-    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="知行合一">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/04/04/%E5%81%A5%E8%BA%AB/%E8%82%B1%E4%BA%8C%E3%80%81%E4%B8%89%E5%A4%B4%E8%82%8C%E5%88%9D%E7%BA%A7%E8%AE%AD%E7%BB%83/" class="post-title-link" itemprop="url">肱二、三头肌的初级训练</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-04-04 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-04T00:00:00+08:00">2018-04-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-03-10 10:19:06" itemprop="dateModified" datetime="2020-03-10T10:19:06+08:00">2020-03-10</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%81%A5%E8%BA%AB/" itemprop="url" rel="index">
-                    <span itemprop="name">健身</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>38</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 ≈</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本文简单减少肱二头和肱三头的常见训练动作和要领，适用于初级健身者。</p>
-<p>挖坑待填。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/04/04/%E5%81%A5%E8%BA%AB/%E8%82%B1%E4%BA%8C%E3%80%81%E4%B8%89%E5%A4%B4%E8%82%8C%E5%88%9D%E7%BA%A7%E8%AE%AD%E7%BB%83/#more" rel="contents">
-                阅读全文 »
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1436,7 +1483,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1488,12 +1535,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">103k</span>
+    <span title="站点总字数">119k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:33</span>
+    <span title="站点阅读时长">1:49</span>
 </div>
 
         

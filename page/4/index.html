@@ -180,6 +180,346 @@
   
   
   <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/10/%E6%B8%B2%E6%9F%93/Liang-Barsky%E8%A3%81%E5%89%AA%E7%AE%97%E6%B3%95/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/04/10/%E6%B8%B2%E6%9F%93/Liang-Barsky%E8%A3%81%E5%89%AA%E7%AE%97%E6%B3%95/" class="post-title-link" itemprop="url">梁友栋-Barsky裁剪算法</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-04-10 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-10T00:00:00+08:00">2018-04-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:19:22" itemprop="dateModified" datetime="2020-03-10T10:19:22+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B8%B2%E6%9F%93/" itemprop="url" rel="index">
+                    <span itemprop="name">渲染</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>梁友栋-Barsky裁剪算法是参数化线段裁剪算法，基于参数t求线段与裁剪区域的交点。</p>
+<h2 id="一-算法思想"><a class="markdownIt-Anchor" href="#一-算法思想"></a> 一、算法思想</h2>
+<p>一条端点为P1(x1, y1)，P2(x2, y2)的线段参数方式可以表示如下：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">x = x1 + t * (x2 - x1)</span><br><span class="line">y = y1 + t * (y2 - y1)</span><br></pre></td></tr></tbody></table></figure>
+<p>令dx = x2 - x1，dy = y2 - y1,则上述方程变形为：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">x = x1 + t * dx</span><br><span class="line">y = y1 + t * dy</span><br></pre></td></tr></tbody></table></figure>
+<p>设裁剪区域由点(xmin, ymin)，(xmax, ymax)定义，设线段上的点P(x, y)位于裁剪区域内，则其满足以下不等式:</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">xmin &lt;= x1 + t * dx &lt;= xmax</span><br><span class="line">ymin &lt;= y1 + t * dy &lt;= ymax</span><br></pre></td></tr></tbody></table></figure>
+<p>分离化简如下：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">-dx * t &lt;= (-xmin + x1)</span><br><span class="line">dx * t &lt;= (xmax - x1)</span><br><span class="line">-dy * t &lt;= (-ymin + y1)</span><br><span class="line">dy * t &lt;= (ymax - y1)</span><br></pre></td></tr></tbody></table></figure>
+<p>则四个不等式可以统称为:</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pn * t &lt;= qn，其中 n = 0, 1, 2, 3</span><br></pre></td></tr></tbody></table></figure>
+<p>通过画图，很容易得出以下结论：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">平行于边界的线段满足pn = 0，若qn &gt;= 0，则线段在裁剪区域内部，若qn &lt; 0，则线段在裁剪区域外部。</span><br><span class="line">当 pn &lt; 0 时，线段从裁减边界的外部进入内部，</span><br><span class="line">当 pn &gt; 0 时，线段从裁剪边界的内部离开。</span><br></pre></td></tr></tbody></table></figure>
+<p>那么对于给定线段所在的直线，我们可以计算其与裁减区域的交点，设得到的交点参数为t1，t2，t1表示从外进入到内的参数，t2表示从内部离开到外部的参数，则</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1、t1由直线从外进入裁减区域决定，此时 pn &lt; 0，t &gt;= qn / pn，所以t1是各个 qn/pn 中的最大值。</span><br><span class="line">2、t2由直接从内部离开裁剪区域决定，此时 pn &gt; 0， t &lt;= qn / pn，所以t2是各个 qn/pn 中的最小值。</span><br><span class="line">3、当 pn = 0 并且，qn &lt; 0 时，线段在裁减区域外。</span><br><span class="line">4、当 0 &lt;= t1 &lt;= t2 &lt;= 1 时，线段与裁减区域有交点，将t1和t2带入方程可以得到被裁剪后的线段新端点为：</span><br><span class="line">    (x1 + t1 * dx, y1 + t1 * dy)和(x1 + t2 * dx, y1 + t2 * dy)。</span><br></pre></td></tr></tbody></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/04/10/%E6%B8%B2%E6%9F%93/Liang-Barsky%E8%A3%81%E5%89%AA%E7%AE%97%E6%B3%95/#more" rel="contents">
+                阅读全文 »
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/04/%E5%81%A5%E8%BA%AB/%E5%81%A5%E8%BA%AB%E5%88%9D%E7%BA%A7%E8%AE%AD%E7%BB%83-%E8%83%B8%E9%83%A8/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/04/04/%E5%81%A5%E8%BA%AB/%E5%81%A5%E8%BA%AB%E5%88%9D%E7%BA%A7%E8%AE%AD%E7%BB%83-%E8%83%B8%E9%83%A8/" class="post-title-link" itemprop="url">健身初级训练-胸部</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-04-04 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-04T00:00:00+08:00">2018-04-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:30:11" itemprop="dateModified" datetime="2020-03-10T10:30:11+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%81%A5%E8%BA%AB/" itemprop="url" rel="index">
+                    <span itemprop="name">健身</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>405</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>胸部训练主要训练上胸、中胸、下胸、中缝、外沿、下沿。</p>
+<h2 id="一-训练"><a class="markdownIt-Anchor" href="#一-训练"></a> 一、训练</h2>
+<h3 id="1-训练动作"><a class="markdownIt-Anchor" href="#1-训练动作"></a> 1、训练动作</h3>
+<p>卧推训练<br>
+动作要点：</p>
+<ul>
+<li>躺下，抓住杠铃把自己提起来，收紧肩胛骨，下沉肩膀，再把自己的身体放在卧推椅</li>
+<li>肩胛骨保持收紧，不要耸肩</li>
+<li>小臂垂直地面，大臂与身体成45度角</li>
+<li>推起时肩膀不能前伸，注意呼吸</li>
+<li>推到顶端的时候夹胸，不要想是推杠铃，而是夹杠铃</li>
+</ul>
+<p>哑铃飞鸟<br>
+动作要点：</p>
+<ul>
+<li>
+<p>仰卧窄凳，双手持铃，掌心相对。上背部紧贴凳子，脊椎保持生理弯曲，核心收紧</p>
+</li>
+<li>
+<p>下放：下放哑铃时注意力集中在胸缝处，靠胸肌的张力控制住哑铃缓慢下放，同时充分吸气、挺胸，幅度要完全到位。</p>
+</li>
+<li>
+<p>收缩：上举时要靠胸肌的收缩带动双臂向上环抱，直至哑铃相触，这样可避免肩背 过分参与用力。</p>
+</li>
+<li>
+<p>意念集中：注意集中在胸部肌肉，感觉胸肌被拉扯和收缩。</p>
+</li>
+</ul>
+<h3 id="2-训练计划"><a class="markdownIt-Anchor" href="#2-训练计划"></a> 2、训练计划</h3>
+<ol>
+<li>热身</li>
+<li>哑铃飞鸟 10 * 4</li>
+<li>卧推（平板，上斜，下斜） 10 * 4</li>
+<li>哑铃推（平板，上斜） 10 * 4</li>
+<li>窄距哑铃推，哑铃飞鸟 10 * 4</li>
+<li>哑铃飞鸟（平板，下斜） 10 * 4</li>
+<li>双杠屈臂称</li>
+<li>俯卧撑</li>
+</ol>
+<h2 id="二-拉伸"><a class="markdownIt-Anchor" href="#二-拉伸"></a> 二、拉伸</h2>
+<p>待补充。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/04/%E5%81%A5%E8%BA%AB/%E8%82%B1%E4%BA%8C%E3%80%81%E4%B8%89%E5%A4%B4%E8%82%8C%E5%88%9D%E7%BA%A7%E8%AE%AD%E7%BB%83/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="silence394">
+      <meta itemprop="description" content="认识自我、认识世界">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="知行合一">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/04/04/%E5%81%A5%E8%BA%AB/%E8%82%B1%E4%BA%8C%E3%80%81%E4%B8%89%E5%A4%B4%E8%82%8C%E5%88%9D%E7%BA%A7%E8%AE%AD%E7%BB%83/" class="post-title-link" itemprop="url">肱二、三头肌的初级训练</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-04-04 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-04T00:00:00+08:00">2018-04-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-10 10:19:06" itemprop="dateModified" datetime="2020-03-10T10:19:06+08:00">2020-03-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%81%A5%E8%BA%AB/" itemprop="url" rel="index">
+                    <span itemprop="name">健身</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>38</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 ≈</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>本文简单减少肱二头和肱三头的常见训练动作和要领，适用于初级健身者。</p>
+<p>挖坑待填。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/04/04/%E5%81%A5%E8%BA%AB/%E8%82%B1%E4%BA%8C%E3%80%81%E4%B8%89%E5%A4%B4%E8%82%8C%E5%88%9D%E7%BA%A7%E8%AE%AD%E7%BB%83/#more" rel="contents">
+                阅读全文 »
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/04/%E5%81%A5%E8%BA%AB/%E5%81%A5%E8%BA%AB%E5%88%9D%E7%BA%A7%E8%AE%AD%E7%BB%83-%E8%85%BF%E9%83%A8/">
 
     <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -462,7 +802,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -514,12 +854,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">103k</span>
+    <span title="站点总字数">119k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:33</span>
+    <span title="站点阅读时长">1:49</span>
 </div>
 
         
