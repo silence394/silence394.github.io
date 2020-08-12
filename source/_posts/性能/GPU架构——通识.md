@@ -11,7 +11,7 @@ GPU能为我们提供更加真实的渲染画面。
 PC上的GPU是长这个样子的。
 ![0a53ecbb-c184-4d96-b612-2a6dfa83052a](https://raw.githubusercontent.com/silence394/PicBed/PicGO/0a53ecbb-c184-4d96-b612-2a6dfa83052a.jpg)
 
-而我们经常是显卡。显卡，则是由GPU、显存、电路板，BIOS固件、散热器等组成的。GPU是显卡的核心部件。
+我们经常看到的是显卡。它是由GPU、显存、电路板，BIOS固件、散热器等组成的，而GPU是显卡的核心部件。
 
 ![30bcf7fd-2e40-47a0-aab1-993717021e8a](https://raw.githubusercontent.com/silence394/PicBed/PicGO/30bcf7fd-2e40-47a0-aab1-993717021e8a.png)
 
@@ -20,8 +20,21 @@ PC上的GPU是长这个样子的。
 还有一种显卡是集成显卡，它集成在了主板上，与CPU公用一块系统内存，一般都是紧挨着CPU芯片，以使CPU与集成GPU能够更快地进行数据交换。手机上CPU和GPU集成在SOC（System on Chip）上。一般来说，集成显卡要占用内存作为显存，占用系统的带宽，影响系统的整体性能，所以在手机上常常会碰到带宽的性能瓶颈。
 
 ### GPU的发展历程
+一般认为GPU的发展历史是从Nvidia公司在1998年发布GeForce256开始，但是我认为更早起的图形显示硬件也属于GPU的范畴。下面按照年代顺序介绍下GPU的发展。
 
-file:///H:/FuckDownLoad/%E5%9B%BE%E5%BD%A2%E5%A4%84%E7%90%86%E5%99%A8%E7%9A%84%E5%8E%86%E5%8F%B2%E7%8E%B0%E7%8A%B6%E5%92%8C%E5%8F%91%E5%B1%95%E8%B6%8B%E5%8A%BF.pdf
+1970年代，ANTIC和CTIA芯片为Atari-8位电脑提供硬件控制的图形和文字混合模式，以及其他视频效果的支持。ANTIC芯片是一个特殊用途的处理器，用于映射文字和图形数据到视频输出。
+
+1980年代，NEC 7220是第一个用以处理图形显示的大规模集成电路的单独芯片，由九号视觉公司实现了低消耗、高性能的视频图形卡，是1980年代最著名的图形芯片之一。它支持高达1024x1024的分辨率，并为新兴的PC图形市场奠定了基础。
+
+1984年，日立发布了ARTC HD63484，这是第一款用于PC的主要CMOS图形处理器。ARTC 在单色模式下能够显示高达4K的分辨率，并在1980年代后期用于许多PC图形卡和终端。
+
+IBM的专有 视频图形阵列（VGA）显示器标准是在1987年引入的，具有640×480像素的最大分辨率。
+
+windows
+
+Nvidia
+
+移动
 
 https://en.wikipedia.org/wiki/Graphics_processing_unit#1970s
 
