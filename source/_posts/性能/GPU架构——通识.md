@@ -89,3 +89,18 @@ tuling物理架构图
 比如手机上的TBR和TBDR。
 
 二者都有相应的渲染管线，在后面会介绍到。
+
+
+移动平台相比于PC平台，还是有很多不同的。从本质上看，是由功耗和体积两方面限制的，对于图形处理来说，主要是两点：第一，是有限的带宽。实际上，要增加计算能力，在功耗允许的情况下，堆核心并不是一件难事，事实上我们也看到了不少SOC集成了四核乃至“16核”GPU。但是难点在于，需要有足够的带宽去满足这颗强大的GPU，避免其出现“饿死”的情况。在左图的移动平台中，CPU、GPU和总线被共同集成在一颗芯片上，称之为SOC。整个SOC，包括其中的CPU和GPU，共享有限的内存带宽。即使是相对高端的，采用64bit内存位宽的一些SOC，如三星4412，高通8064等，也只是6.4 - 8.5GB/s的带宽，相比起PC平台主内存十几GB/s的带宽，和PC GPU GDDR5显存动辄几十，不少都超过100GB/s的带宽，只能说是少的可怜。相对另类的苹果在iPad4中，给A6X芯片搭配了128bit的LPDDR2-1066，带宽达到了17GB/s，用以喂饱强大的SGX 554 MP4 GPU，但相比PC平台依旧是小巫见大巫。因此，移动平台要在有限的带宽下实现合理的性能，在不少时候，瓶颈可能并不在于计算能力上，而在于带宽上。第二，相比PC平台的CPU，移动平台的CPU浮点较弱，在Cortex-A9开始虽然有所好转，但64bit的NEON跟桌面128bit甚至256bit的SIMD还是有显著差距，外加主频的差别。因此更多的计算也依赖硬件Vertex Shader去完成。因此，移动平台的GPU相对于PC平台，也会有一些不同。
+
+
+移动GPU和桌面baiGPU最大的不同在于，移动GPU在设du计上是有着明确的资源限制的：zhi功耗和面积。其次才是dao性能功耗比。这样也导致移动GPU无论是拼性能还是性能功耗比，都远不如桌面GPU。
+另外，对于现代GPU来说，无论是桌面还是移动，能看的指标只有两个：一个是FLOPS（Half Precision和Full Precision），一个就是Memory Bandwidth。至于核数之类的，那都是Market Techniques。此外性能和指标的关系，虽然是有，但没那么密切。
+
+渲染架构https://www.gpuinsight.com/gpu_terms/
+
+http://www.igao7.com/news/201406/1217-vv-gpu.html
+https://www.zhihu.com/question/20720436
+https://gameinstitute.qq.com/community/detail/103959
+https://zhidao.baidu.com/question/564339480544098684.html
+https://www.cnblogs.com/herenzhiming/articles/7183309.html
